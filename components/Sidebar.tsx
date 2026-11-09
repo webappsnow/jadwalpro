@@ -9,7 +9,11 @@ const NAV = [
   { href: '/admin', label: 'Panel Admin', icon: <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg> }
 ];
 
-export function Sidebar({ isAdmin, user, onLogin, onLogout }: { isAdmin: boolean; user: any; onLogin: () => void; onLogout: () => void; }) {
+export function Sidebar({ isAdmin, user, onLogout }: { 
+  isAdmin: boolean; 
+  user: any; 
+  onLogout: () => void; 
+}) {
   const pathname = usePathname();
   
   return (
@@ -22,7 +26,6 @@ export function Sidebar({ isAdmin, user, onLogin, onLogout }: { isAdmin: boolean
       {/* Menu */}
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {NAV.map(item => {
-          // Sembunyikan menu Admin jika bukan Admin
           if (item.href === '/admin' && !isAdmin) return null;
           
           return (
@@ -35,16 +38,10 @@ export function Sidebar({ isAdmin, user, onLogin, onLogout }: { isAdmin: boolean
 
       {/* Footer (Auth) */}
       <div style={{ marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {user ? (
-          <>
-            <div style={{ fontSize: '0.75rem', color: '#94a3b8', textAlign: 'center' }}>
-              {user.email} <br/> <span style={{ color: isAdmin ? '#4ade80' : '#64748b' }}>({isAdmin ? 'Admin' : 'Promotor'})</span>
-            </div>
-            <button onClick={onLogout} className="btn-modern btn-outline" style={{ width: '100%', fontSize: '0.8rem', padding: '8px' }}>Logout</button>
-          </>
-        ) : (
-          <button onClick={onLogin} className="btn-modern btn-primary" style={{ width: '100%', fontSize: '0.8rem', padding: '8px' }}>Login with Google</button>
-        )}
+        <div style={{ fontSize: '0.75rem', color: '#94a3b8', textAlign: 'center' }}>
+          {user?.email} <br/> <span style={{ color: isAdmin ? '#4ade80' : '#64748b' }}>({isAdmin ? 'Admin' : 'Promotor'})</span>
+        </div>
+        <button onClick={onLogout} className="btn-modern btn-outline" style={{ width: '100%', fontSize: '0.8rem', padding: '8px' }}>Logout</button>
       </div>
     </aside>
   );
