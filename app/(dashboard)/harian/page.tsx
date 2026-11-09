@@ -208,6 +208,8 @@ export default function HarianPage() {
     );
   };
 
+  const isWeekend = activeDay === 'sabtu' || activeDay === 'minggu';
+
   return (
     <section>
       <div style={{ marginBottom: '12px' }}>
@@ -254,7 +256,12 @@ export default function HarianPage() {
                 <tbody>
                   {areas.map(area => {
                     const tugasMap = dayData[area] || {};
-                    const tugasKeys = sortTugas(Object.keys(tugasMap));
+                    const tugasKeys = sortTugas(Object.keys(tugasMap)).filter(tugas => {
+                      // Sembunyikan General Cleaning jika bukan weekend
+                      if (tugas.includes('GENERAL CLEANING') && !isWeekend) return false;
+                      return true;
+                    });
+
                     if (tugasKeys.length === 0) {
                       return (
                         <tr key={area} className="area-start">
@@ -291,7 +298,13 @@ export default function HarianPage() {
             <div className="mobile-only" style={{ padding: '16px' }}>
               {areas.map(area => {
                 const tugasMap = dayData[area] || {};
-                const tugasKeys = sortTugas(Object.keys(tugasMap));
+                const tugasKeys = sortTugas(Object.keys(tugasMap)).filter(tugas => {
+                  if (tugas.includes('GENERAL CLEANING') && !isWeekend) return false;
+                  return true;
+                });
+                
+                if (tugasKeys.length === 0) return null; // Jika tidak ada tugas, jangan tampilkan card area
+                
                 return (
                   <div key={area} className="harian-card">
                     <div className="area-title">{area}</div>
