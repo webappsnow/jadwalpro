@@ -5,19 +5,17 @@ import { useAdmin } from '@/hooks/useAdmin';
 import { useData } from '@/hooks/useData';
 
 export default function LoginPage() {
-  const { data, loading: dataLoading } = useData();
-  const { user, login, loading: authLoading, unauthorized } = useAdmin(data.adminEmails, data.promotorEmails);
+  const { data } = useData();
+  const { user, login, loading } = useAdmin(data.adminEmails, data.promotorEmails);
   const router = useRouter();
 
-  const isLoading = dataLoading || authLoading;
-
   useEffect(() => {
-    if (!isLoading && user) {
+    if (!loading && user) {
       router.push('/shift'); 
     }
-  }, [user, isLoading, router]);
+  }, [user, loading, router]);
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f8fafc', color: '#64748b' }}>
         Memuat...
@@ -30,17 +28,9 @@ export default function LoginPage() {
       <div className="card-glass" style={{ padding: '48px', borderRadius: '24px', maxWidth: '400px', width: '100%', textAlign: 'center' }}>
         <img src="/logo-ufo.png" alt="Logo" style={{ width: '150px', height: 'auto', margin: '0 auto 24px auto' }} />
         <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '8px' }}>Selamat Datang</h1>
-        
-        {unauthorized ? (
-          <p style={{ color: '#ef4444', marginBottom: '24px', fontSize: '0.95rem', fontWeight: 600 }}>
-            Maaf, email Anda belum terdaftar. Silakan hubungi Admin.
-          </p>
-        ) : (
-          <p style={{ color: '#64748b', marginBottom: '32px', fontSize: '0.95rem' }}>
-            Silakan login dengan akun Google Anda.
-          </p>
-        )}
-        
+        <p style={{ color: '#64748b', marginBottom: '32px', fontSize: '0.95rem' }}>
+          Silakan login dengan akun Google Anda.
+        </p>
         <button onClick={login} className="btn-modern btn-primary" style={{ width: '100%', padding: '14px', fontSize: '1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>

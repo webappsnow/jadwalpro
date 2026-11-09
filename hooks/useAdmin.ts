@@ -2,43 +2,21 @@
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { checkIsAdmin, checkIsAllowed, loginWithGoogle, logout } from '@/lib/auth';
+import { checkIsAdmin, loginWithGoogle, logout } from '@/lib/auth';
 
 export function useAdmin(adminEmails: string[] = [], promotorEmails: string[] = []) {
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [unauthorized, setUnauthorized] = useState(false);
 
   useEffect(() => {
-    // JIKA data admin/promotor masih kosong, JANGAN lakukan pengecekan
-    if (adminEmails.length === 0 && promotorEmails.length === 0) {
-      return;
-    }
-
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (currentUser && currentUser.email) {
-        const allowed = checkIsAllowed(currentUser, adminEmails, promotorEmails);
-        const admin = checkIsAdmin(currentUser, adminEmails);
-
-        if (!allowed) {
-          setUser(null);
-          setIsAdmin(false);
-          setUnauthorized(true);
-        } else {
-          setUser(currentUser);
-          setIsAdmin(admin);
-          setUnauthorized(false);
-        }
-      } else {
-        setUser(null);
-        setIsAdmin(false);
-        setUnauthorized(false);
-      }
+      setUser(currentUser);
+      setIsAdmin(checkIsAdmin(currentUser, adminEmails));
       setLoading(false);
     });
     return () => unsubscribe();
-  }, [adminEmails, promotorEmails]);
+  }, [adminEmails]);
 
   const login = async () => {
     await loginWithGoogle();
@@ -50,5 +28,5 @@ export function useAdmin(adminEmails: string[] = [], promotorEmails: string[] = 
     setIsAdmin(false);
   };
 
-  return { user, isAdmin, loading, login, logout: signOutUser, unauthorized };
+  return { user, isAdmin, loading, login, logout: signOutUser };
 }
