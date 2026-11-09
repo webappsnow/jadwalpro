@@ -1,30 +1,58 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAdmin } from '@/hooks/useAdmin';
-import { useData } from '@/hooks/useData';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase';
+import { loginWithGoogle } from '@/lib/auth';
 
 export default function LoginPage() {
-  const { data, loading: dataLoading } = useData();
-  // Hanya kirim data.adminEmails
-  const { user, login, loading: authLoading } = useAdmin(data.adminEmails);
   const router = useRouter();
-
-  const isLoading = dataLoading || authLoading;
+  const [isChecking, setIsChecking] = useState(false);
 
   useEffect(() => {
-    if (!isLoading && user) {
-      router.push('/shift'); 
-    }
-  }, [user, isLoading, router]);
+    // Cek jika user sudah login (misal dari sesi sebelumnya)
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (user && user.email) {
+        setIsChecking(true);
+        try {
+          const docRef = doc(db, 'config', 'ufo_data');
+          const docSnap = await getDoc(docRef);
 
-  if (isLoading) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f8fafc', color: '#64748b' }}>
-        Memuat...
-      </div>
-    );
-  }
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            const adminEmails = data.adminEmails || [];
+            const promotorEmails = data.promotorEmails || [];
+            
+            const email = user.email.toLowerCase();
+            const isAllowed = adminEmails.map((e: string) => e.toLowerCase()).includes(email) || 
+                              promotorEmails.map((e: string) => e.toLowerCase()).includes(email);
+
+            if (isAllowed) {
+              router.push('/shift');
+            } else {
+              await auth.signOut();
+              alert('Email Anda belum terdaftar. Silakan hubungi Admin.');
+            }
+          }
+        } catch (error) {
+          console.error(error);
+        } finally {
+          setIsChecking(false);
+        }
+      }
+    });
+
+    return () => unsub();
+  }, [router]);
+
+  const handleLogin = async () => {
+    try {
+      await loginWithGoogle();
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <div style={{ 
@@ -43,13 +71,14 @@ export default function LoginPage() {
         </h1>
         
         <p style={{ color: '#64748b', marginBottom: '32px', fontSize: '0.9rem', lineHeight: 1.5 }}>
-          Silakan login dengan akun Google Anda untuk mengakses jadwal.
+          {isChecking ? 'Memeriksa akun...' : 'Silakan login dengan akun Google Anda untuk mengakses jadwal.'}
         </p>
         
         <button 
-          onClick={login} 
+          onClick={handleLogin} 
+          disabled={isChecking}
           className="btn-modern btn-primary" 
-          style={{ width: '100%', padding: '14px', fontSize: '1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}
+          style={{ width: '100%', padding: '14px', fontSize: '1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', opacity: isChecking ? 0.7 : 1 }}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
