@@ -1,5 +1,5 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useData } from '@/hooks/useData';
@@ -8,8 +8,15 @@ export default function LoginPage() {
   const { data, loading: dataLoading } = useData();
   const { user, login, loading: authLoading, unauthorized } = useAdmin(data.adminEmails, data.promotorEmails);
   const router = useRouter();
+  const [forceStopLoading, setForceStopLoading] = useState(false);
 
-  const isLoading = dataLoading || authLoading;
+  // Timeout pengaman: Jika 3 detik tidak selesai, paksa tampilkan halaman
+  useEffect(() => {
+    const timer = setTimeout(() => setForceStopLoading(true), 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const isLoading = (dataLoading || authLoading) && !forceStopLoading;
 
   useEffect(() => {
     if (!isLoading && user) {

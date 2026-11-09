@@ -11,8 +11,8 @@ export function useAdmin(adminEmails: string[] = [], promotorEmails: string[] = 
   const [unauthorized, setUnauthorized] = useState(false);
 
   useEffect(() => {
-    // Jika data admin/promotor masih kosong, jangan lakukan pengecekan dulu
     if (adminEmails.length === 0 && promotorEmails.length === 0) {
+      setLoading(false);
       return;
     }
 
