@@ -21,9 +21,18 @@ html, body {
     -webkit-overflow-scrolling: touch;
 }
 
-/* ========== LAYOUT WRAPPER ========== */
-.layout-wrapper { display: flex; min-height: 100vh; flex-direction: column; }
-.main-content { flex: 1; padding: 24px; width: 100%; overflow-x: hidden; }
+/* ========== LAYOUT WRAPPER (KUNCI TATA LETAK) ========== */
+.layout-wrapper { 
+    display: flex; 
+    min-height: 100vh; 
+    flex-direction: column; 
+}
+.main-content { 
+    flex: 1; 
+    padding: 24px; 
+    width: 100%; 
+    overflow-x: hidden;
+}
 
 @media (min-width: 768px) { 
     .layout-wrapper { flex-direction: row; } 
