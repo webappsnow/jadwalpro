@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { checkIsAdmin, loginWithGoogle, logout } from '@/lib/auth';
+import { checkIsAdmin, checkIsAllowed, loginWithGoogle, logout } from '@/lib/auth';
 
 export function useAdmin(adminEmails: string[] = [], promotorEmails: string[] = []) {
   const [user, setUser] = useState<User | null>(null);
@@ -13,18 +13,16 @@ export function useAdmin(adminEmails: string[] = [], promotorEmails: string[] = 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser && currentUser.email) {
-        const email = currentUser.email.trim().toLowerCase();
-        const isAdm = checkIsAdmin(currentUser, adminEmails);
-        const isProm = promotorEmails.map(e => e.trim().toLowerCase()).includes(email);
-
-        if (!isAdm && !isProm) {
+        const isAllowed = checkIsAllowed(currentUser, adminEmails, promotorEmails);
+        
+        if (!isAllowed) {
           await signOut(auth);
           setUser(null);
           setIsAdmin(false);
           setUnauthorized(true);
         } else {
           setUser(currentUser);
-          setIsAdmin(isAdm);
+          setIsAdmin(checkIsAdmin(currentUser, adminEmails));
           setUnauthorized(false);
         }
       } else {

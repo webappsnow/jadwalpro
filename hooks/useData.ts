@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { db, auth } from '@/lib/firebase'; // Import auth
+import { db, auth } from '@/lib/firebase';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth'; // Import onAuthStateChanged
+import { onAuthStateChanged } from 'firebase/auth';
 import type { AppData } from '@/lib/types';
 import { DEFAULT_HARIAN } from '@/lib/constants';
 
@@ -20,7 +20,6 @@ export function useData() {
   useEffect(() => {
     let unsubSnapshot: (() => void) | null = null;
 
-    // Dengarkan status login user
     const unsubAuth = onAuthStateChanged(auth, (user) => {
       if (unsubSnapshot) {
         unsubSnapshot();
@@ -28,7 +27,6 @@ export function useData() {
       }
 
       if (user) {
-        // Jika user login, mulai dengarkan data Firebase
         unsubSnapshot = onSnapshot(doc(db, 'config', 'ufo_data'), (snap) => {
           if (snap.exists()) {
             const d = snap.data();
@@ -42,26 +40,15 @@ export function useData() {
               adminEmails: d.adminEmails || [],
               promotorEmails: d.promotorEmails || [],
             });
-          } else {
-            setData({
-              sales: [],
-              colors: {},
-              harian: DEFAULT_HARIAN,
-              adminEmails: [],
-              promotorEmails: [],
-            });
           }
+          setLoading(false);
+        }, (error) => {
+          console.warn("Gagal baca data:", error);
+          setData({ sales: [], colors: {}, harian: DEFAULT_HARIAN, adminEmails: [], promotorEmails: [] });
           setLoading(false);
         });
       } else {
-        // Jika user belum login, set data kosong dan loading false
-        setData({
-          sales: [],
-          colors: {},
-          harian: DEFAULT_HARIAN,
-          adminEmails: [],
-          promotorEmails: [],
-        });
+        setData({ sales: [], colors: {}, harian: DEFAULT_HARIAN, adminEmails: [], promotorEmails: [] });
         setLoading(false);
       }
     });

@@ -23,9 +23,15 @@ export const logout = async () => {
 
 export const checkIsAdmin = (user: User | null, adminEmails: string[]) => {
   if (!user || !user.email) return false;
-  // Bersihkan spasi dan jadikan huruf kecil semua sebelum dibandingkan
   const cleanUserEmail = user.email.trim().toLowerCase();
   const cleanAdminEmails = adminEmails.map(e => e.trim().toLowerCase());
-  
   return cleanAdminEmails.includes(cleanUserEmail);
+};
+
+export const checkIsAllowed = (user: User | null, adminEmails: string[], promotorEmails: string[]) => {
+  if (!user || !user.email) return false;
+  const email = user.email.trim().toLowerCase();
+  const isAdmin = adminEmails.map(e => e.trim().toLowerCase()).includes(email);
+  const isPromotor = promotorEmails.map(e => e.trim().toLowerCase()).includes(email);
+  return isAdmin || isPromotor;
 };
