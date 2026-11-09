@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/useToast';
 import { HARI_ORDER, HARI_LABELS, TUGAS_OPTIONS } from '@/lib/constants';
 import { ConfirmModal } from '@/components/ConfirmModal';
 
+// Fungsi warna kontras
 function getContrastYIQ(hexcolor: string){
     if(!hexcolor || hexcolor.indexOf('#') !== 0) return '#ffffff';
     hexcolor = hexcolor.replace("#", "");
@@ -19,7 +20,7 @@ function getContrastYIQ(hexcolor: string){
 
 export default function HarianPage() {
   const { data, saveData } = useData();
-  const { isAdmin } = useAdmin(data.adminEmails);
+  const { isAdmin } = useAdmin(data.adminEmails, data.promotorEmails);
   const { show } = useToast();
   
   const [activeDay, setActiveDay] = useState<string>('senin');
@@ -200,9 +201,9 @@ export default function HarianPage() {
               <table className="table-harian" style={{ width: '100%', tableLayout: 'fixed' }}>
                 <thead>
                   <tr>
-                    <th style={{ width: '120px', textAlign: 'center' }}>AREA</th>
-                    <th style={{ width: '280px', textAlign: 'left', paddingLeft: '16px' }}>TUGAS</th>
-                    <th style={{ textAlign: 'left', paddingLeft: '16px' }}>BRAND PENANGGUNG JAWAB</th>
+                    <th style={{ width: '120px', textAlign: 'center', padding: '16px 12px' }}>AREA</th>
+                    <th style={{ width: '250px', textAlign: 'left', padding: '16px 12px' }}>TUGAS</th>
+                    <th style={{ textAlign: 'left', padding: '16px 12px' }}>BRAND PENANGGUNG JAWAB</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -215,11 +216,39 @@ export default function HarianPage() {
                       const brands = tugasMap[tugas] || [];
                       const isGeneralCleaning = tugas.includes('GENERAL CLEANING');
                       return (
-                        <tr key={`${area}-${tugas}`} className={i === 0 ? 'area-start' : ''}>
-                          {i === 0 && <td className="area-cell" rowSpan={tugasKeys.length} style={{ textAlign: 'center', verticalAlign: 'middle' }}>{area}</td>}
-                          <td className="tugas-cell" style={{ whiteSpace: 'normal', lineHeight: '1.3', paddingLeft: '16px' }}>{tugas}</td>
-                          <td style={{ paddingLeft: '16px', textAlign: 'left' }}>
-                            {isGeneralCleaning ? (<span style={{ fontSize: '0.8rem', color: '#475569', fontWeight: 600 }}>Semua Promotor Shift Pagi</span>) : (renderBrandChips(brands, activeDay, area, tugas))}
+                        <tr key={`${area}-${tugas}`} className={i === 0 ? 'area-start' : ''} style={{ borderTop: i === 0 ? '2px solid #e2e8f0' : 'none' }}>
+                          {i === 0 && (
+                            <td 
+                              className="area-cell" 
+                              rowSpan={tugasKeys.length} 
+                              style={{ 
+                                textAlign: 'center', 
+                                verticalAlign: 'middle', 
+                                fontWeight: 800, 
+                                color: '#0f172a', 
+                                background: '#f8fafc',
+                                borderRight: '1px solid #e2e8f0'
+                              }}
+                            >
+                              {area}
+                            </td>
+                          )}
+                          <td className="tugas-cell" style={{ 
+                            whiteSpace: 'normal', 
+                            lineHeight: '1.4', 
+                            padding: '16px 12px',
+                            fontWeight: 600,
+                            color: '#334155',
+                            fontSize: '0.85rem'
+                          }}>
+                            {tugas}
+                          </td>
+                          <td style={{ padding: '16px 12px', textAlign: 'left', verticalAlign: 'middle' }}>
+                            {isGeneralCleaning ? (
+                              <span style={{ fontSize: '0.8rem', color: '#475569', fontWeight: 600, fontStyle: 'italic' }}>Semua Promotor Shift Pagi</span>
+                            ) : (
+                              renderBrandChips(brands, activeDay, area, tugas)
+                            )}
                           </td>
                         </tr>
                       );
@@ -236,14 +265,14 @@ export default function HarianPage() {
                 if (tugasKeys.length === 0) return null;
                 
                 return (
-                  <div key={area} className="harian-card">
-                    <div className="area-title">{area}</div>
+                  <div key={area} className="harian-card" style={{ marginBottom: '16px', background: 'white', borderRadius: '12px', padding: '16px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.9rem', textTransform: 'uppercase', borderBottom: '2px solid #f1f5f9', paddingBottom: '8px', marginBottom: '12px' }}>{area}</div>
                     {tugasKeys.map(tugas => {
                       const isGeneralCleaning = tugas.includes('GENERAL CLEANING');
                       return (
-                        <div key={tugas} style={{ display: 'flex', flexDirection: 'column', gap: '3px', padding: '5px 0', borderBottom: '1px dashed #eef2f6' }}>
-                          <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>{tugas}</span>
-                          <div>{isGeneralCleaning ? (<span style={{ fontSize: '0.75rem', color: '#475569', fontWeight: 600 }}>Semua Promotor Shift Pagi</span>) : (renderBrandChips(tugasMap[tugas] || [], activeDay, area, tugas))}</div>
+                        <div key={tugas} style={{ marginBottom: '12px' }}>
+                          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginBottom: '4px' }}>{tugas}</div>
+                          <div>{isGeneralCleaning ? (<span style={{ fontSize: '0.75rem', color: '#475569', fontWeight: 600, fontStyle: 'italic' }}>Semua Promotor Shift Pagi</span>) : (renderBrandChips(tugasMap[tugas] || [], activeDay, area, tugas))}</div>
                         </div>
                       );
                     })}
