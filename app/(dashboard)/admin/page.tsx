@@ -14,6 +14,7 @@ export default function AdminPage() {
   const [newName, setNewName] = useState('');
   const [newShiftDay, setNewShiftDay] = useState('P');
   
+  // State untuk Email Admin & Promotor
   const [newAdminEmail, setNewAdminEmail] = useState('');
   const [newPromotorEmail, setNewPromotorEmail] = useState('');
   
@@ -53,6 +54,7 @@ export default function AdminPage() {
     );
   }
 
+  // Fungsi Tambah Admin
   const handleAddAdminEmail = async () => {
     const email = newAdminEmail.trim().toLowerCase();
     if (!email || !email.includes('@')) { show('Masukkan email yang valid', true); return; }
@@ -65,6 +67,7 @@ export default function AdminPage() {
     else show('Gagal menambahkan email admin', true);
   };
 
+  // Fungsi Tambah Promotor
   const handleAddPromotorEmail = async () => {
     const email = newPromotorEmail.trim().toLowerCase();
     if (!email || !email.includes('@')) { show('Masukkan email yang valid', true); return; }
@@ -77,6 +80,7 @@ export default function AdminPage() {
     else show('Gagal menambahkan email promotor', true);
   };
 
+  // Fungsi Hapus Admin
   const handleRemoveAdminEmail = (email: string) => {
     openConfirm('Hapus Email Admin', `Hapus akses admin untuk ${email}?`, async () => {
       const newEmails = data.adminEmails.filter(e => e !== email);
@@ -86,6 +90,7 @@ export default function AdminPage() {
     }, true);
   };
 
+  // Fungsi Hapus Promotor
   const handleRemovePromotorEmail = (email: string) => {
     openConfirm('Hapus Email Promotor', `Hapus akses promotor untuk ${email}?`, async () => {
       const newEmails = data.promotorEmails.filter(e => e !== email);
@@ -157,7 +162,7 @@ export default function AdminPage() {
 
       <div className="card-glass" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
         
-        {/* Kelola Email Admin */}
+        {/* Form Kelola Admin */}
         <div>
           <h3 style={{ fontWeight: 700, color: '#334155', marginBottom: '12px' }}>Kelola Akses Admin (Email Google)</h3>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
@@ -180,7 +185,7 @@ export default function AdminPage() {
 
         <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0' }} />
 
-        {/* Kelola Email Promotor */}
+        {/* Form Kelola Promotor (INI YANG DICARI) */}
         <div>
           <h3 style={{ fontWeight: 700, color: '#334155', marginBottom: '12px' }}>Kelola Akses Promotor (Email Google)</h3>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
