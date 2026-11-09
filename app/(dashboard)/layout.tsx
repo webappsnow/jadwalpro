@@ -1,184 +1,44 @@
-﻿@tailwind base;
-@tailwind components;
-@tailwind utilities;
+﻿'use client';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Sidebar } from '@/components/Sidebar';
+import { BottomNav } from '@/components/BottomNav';
+import { ToastProvider } from '@/hooks/useToast';
+import { useAdmin } from '@/hooks/useAdmin';
+import { useData } from '@/hooks/useData';
 
-/* ========== GLOBAL & FONT ========== */
-* {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    box-sizing: border-box;
-}
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const { data } = useData();
+  const { user, isAdmin, loading, logout } = useAdmin(data.adminEmails, data.promotorEmails);
+  const router = useRouter();
 
-html, body {
-    background:
-        radial-gradient(ellipse at 0% 0%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
-        radial-gradient(ellipse at 100% 100%, rgba(6, 182, 212, 0.08) 0%, transparent 50%),
-        linear-gradient(135deg, #f0f4f9 0%, #f8fafc 100%);
-    min-height: 100%;
-    height: auto;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch;
-}
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
 
-/* ========== LAYOUT WRAPPER (KUNCI TATA LETAK) ========== */
-.layout-wrapper { 
-    display: flex; 
-    min-height: 100vh; 
-    flex-direction: column; 
-}
-.main-content { 
-    flex: 1; 
-    padding: 24px; 
-    width: 100%; 
-    overflow-x: hidden;
-}
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f8fafc', color: '#64748b' }}>
+        Memuat...
+      </div>
+    );
+  }
 
-@media (min-width: 768px) { 
-    .layout-wrapper { flex-direction: row; } 
-    .main-content { padding: 40px 48px; }
-}
+  if (!user) return null;
 
-/* ========== SIDEBAR ========== */
-.sidebar {
-    background:
-        radial-gradient(ellipse at 50% 0%, rgba(59, 130, 246, 0.15) 0%, transparent 60%),
-        linear-gradient(180deg, #071526 0%, #0d2440 40%, #123456 100%);
-    backdrop-filter: blur(20px);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border-right: 1px solid rgba(255, 255, 255, 0.06);
-    position: relative;
-    z-index: 10;
-    width: 260px;
-    flex-shrink: 0;
-    padding: 24px 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-.sidebar .nav-item {
-    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-    border-radius: 14px; position: relative; overflow: hidden; border: 1px solid transparent;
-    color: rgba(255,255,255,0.6); text-decoration: none;
-    padding: 12px 16px; font-size: 0.9rem; font-weight: 500; display: block;
-}
-.sidebar .nav-item:hover { background: rgba(255, 255, 255, 0.06); transform: translateX(6px); color: white;}
-.sidebar .nav-item.active {
-    background: linear-gradient(135deg, #1d4ed8, #0891b2);
-    box-shadow: 0 8px 24px rgba(29, 78, 216, 0.4);
-    color: white;
-}
-
-/* ========== LOGO ========== */
-.logo-wrap {
-    display: flex; align-items: center; justify-content: center;
-    padding: 16px 20px; border-radius: 20px;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(6, 182, 212, 0.1));
-    border: 1px solid rgba(59, 130, 246, 0.35); transition: all 0.3s; width: 100%; margin-bottom: 24px;
-}
-.logo-img { width: 140px; height: auto; max-height: 60px; object-fit: contain; filter: drop-shadow(0 6px 18px rgba(59, 130, 246, 0.55)); }
-
-/* ========== CARD GLASS ========== */
-.card-glass {
-    background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9);
-    border-radius: 16px;
-}
-
-/* ========== TABEL MODERN ========== */
-.table-modern { width: 100%; border-collapse: collapse; table-layout: fixed; }
-.table-modern th {
-    background: linear-gradient(180deg, #f8fafc, #f1f5f9); color: #0f2b44; font-weight: 800;
-    border-bottom: 3px solid #1d4ed8; text-align: center; vertical-align: middle;
-    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 4px; height: 42px;
-}
-.table-modern td {
-    padding: 8px 4px; border-bottom: 1px solid #eef2f6; text-align: center;
-    vertical-align: middle; font-size: 0.85rem; height: 46px;
-}
-.table-modern tr:hover td { background: rgba(219, 234, 254, 0.2); }
-.table-modern tbody tr.pair-divider td { border-bottom: 3px solid #1d4ed8 !important; position: relative; }
-
-/* ========== BADGE SHIFT ========== */
-.badge-shift {
-    padding: 6px 12px; border-radius: 50px; font-weight: 800; font-size: 0.82rem;
-    display: inline-flex; align-items: center; justify-content: center; min-width: 48px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); user-select: none;
-    border: 2px solid rgba(255, 255, 255, 0.6); line-height: 1.2;
-}
-.badge-shift:hover { transform: scale(1.1) translateY(-3px); }
-.badge-p { background: linear-gradient(145deg, #ffd000, #ff9100); color: #3d1c00; border-color: #ffb700; box-shadow: 0 4px 15px rgba(255, 145, 0, 0.45); }
-.badge-s { background: linear-gradient(145deg, #00bfff, #0051ff); color: #ffffff; border-color: #3399ff; box-shadow: 0 4px 15px rgba(0, 81, 255, 0.45); }
-.badge-l { background: linear-gradient(145deg, #b066ff, #6200ee); color: #ffffff; border-color: #9c27b0; box-shadow: 0 4px 15px rgba(98, 0, 238, 0.45); }
-.badge-off { background: linear-gradient(145deg, #ff5252, #d50000); color: #ffffff; border-color: #ff1744; box-shadow: 0 4px 15px rgba(213, 0, 0, 0.45); }
-.badge-empty { background: linear-gradient(145deg, #e2e8f0, #cbd5e1); color: #94a3b8; border-color: #cbd5e1; box-shadow: none; opacity: 0.4; cursor: default; min-width: 36px; font-size: 0.7rem; font-weight: 600; }
-
-/* ========== MOBILE CARD ========== */
-.shift-card { background: white; border-radius: 18px; padding: 12px 14px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05); border: 1px solid #eef2f6; transition: all 0.25s; margin-bottom: 12px;}
-.shift-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed #e2e8f0; }
-.shift-card-title-wrap { display: flex; align-items: center; gap: 6px; min-width: 0; }
-.shift-card-title { font-weight: 800; color: #0f2b44; font-size: 0.85rem; white-space: nowrap; }
-.shift-card-name { color: #64748b; font-weight: 500; font-size: 0.72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.day-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
-.day-cell { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-.day-cell .day-label { font-size: 0.5rem; color: #94a3b8; font-weight: 800; text-transform: uppercase; }
-.day-cell .badge-shift { width: 100%; min-width: 0; padding: 4px 2px; font-size: 0.6rem; min-width: 24px; border-width: 1.5px; }
-.day-cell .badge-shift .badge-label { font-size: 0.7rem; }
-
-/* ========== BRAND CHIP ========== */
-.brand-chip {
-    display: inline-flex; align-items: center; justify-content: center; gap: 4px; 
-    padding: 6px 12px; 
-    border-radius: 50px;
-    font-weight: 900; 
-    font-size: 0.78rem; 
-    letter-spacing: 0.5px; 
-    cursor: default;
-    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); 
-    margin: 2px; 
-    user-select: none;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.15); 
-    border: 2px solid rgba(255,255,255,0.7);
-    box-shadow: 0 4px 15px var(--glow-color, rgba(0,0,0,0.2)), inset 0 1px 2px rgba(255,255,255,0.3);
-}
-.brand-chip.empty { background: #f8fafc; color: #94a3b8; border: 2px dashed #cbd5e1; box-shadow: none; text-shadow: none; }
-
-/* ========== BOTTOM NAV ========== */
-.bottom-nav { position: fixed; bottom: 16px; left: 16px; right: 16px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid #e2e8f0; border-radius: 16px; padding: 8px; display: none; justify-content: space-around; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); z-index: 50; }
-.bottom-nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 0.65rem; font-weight: 700; color: #94a3b8; text-decoration: none; padding: 8px 16px; border-radius: 12px; transition: all 0.2s; }
-.bottom-nav-item.active { color: #1d4ed8; background: #eff6ff; }
-
-/* ========== FORM & INPUT ========== */
-.admin-input { 
-    border-radius: 40px; padding: 10px 18px; border: 2px solid #e2e8f0; 
-    transition: all 0.2s; background: white; font-size: 0.9rem; width: 100%;
-}
-.admin-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12); outline: none; }
-
-.btn-modern { 
-    border-radius: 40px; padding: 10px 24px; font-weight: 700; 
-    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); border: none; cursor: pointer; 
-    font-size: 0.9rem; position: relative; overflow: hidden; display: inline-flex; 
-    align-items: center; justify-content: center; gap: 6px; 
-}
-.btn-modern:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 10px 28px rgba(0, 0, 0, 0.15); }
-.btn-primary { background: linear-gradient(135deg, #1d4ed8, #0891b2); color: white; box-shadow: 0 4px 16px rgba(29, 78, 216, 0.3); }
-.btn-danger { background: linear-gradient(135deg, #f87171, #dc2626); color: white; box-shadow: 0 4px 16px rgba(220, 38, 38, 0.3); }
-.btn-outline { background: transparent; border: 2px solid #cbd5e1; color: #334155; }
-.btn-outline:hover { background: #f1f5f9; border-color: #94a3b8; }
-
-/* ========== RESPONSIVE ========== */
-.desktop-only { display: block !important; width: 100%; }
-.mobile-only { display: none !important; }
-
-@media (max-width: 768px) {
-    .sidebar { display: none !important; }
-    .bottom-nav { display: flex !important; }
-    .main-content { padding: 16px 16px 100px 16px !important; }
-    .desktop-only { display: none !important; }
-    .mobile-only { display: block !important; }
-    h2 { font-size: 1.2rem !important; }
+  return (
+    <ToastProvider>
+      <div className="layout-wrapper">
+        <Sidebar isAdmin={isAdmin} user={user} onLogout={logout} />
+        
+        <main className={`main-content ${!isAdmin ? 'admin-locked' : ''}`}>
+          {children}
+        </main>
+        
+        <BottomNav isAdmin={isAdmin} onAdminClick={() => {}} />
+      </div>
+    </ToastProvider>
+  );
 }
