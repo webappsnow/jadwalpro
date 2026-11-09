@@ -1,17 +1,14 @@
 import { 
   GoogleAuthProvider, 
   signInWithPopup, 
-  signOut, 
-  onAuthStateChanged,
-  User 
+  signOut 
 } from 'firebase/auth';
-import { auth } from './firebase'; // Pastikan auth diekspor dari firebase.ts
+import { auth } from './firebase';
+import type { User } from 'firebase/auth';
 
-// Daftar email Admin (Ganti dengan email Anda dan rekan admin)
-const ADMIN_EMAILS = [
-  'ufokebonsarimalang@gmail.com', 
-  'emailadmin2@gmail.com'
-];
+// Ambil daftar email dari Environment Variable
+const adminEmailsString = process.env.NEXT_PUBLIC_ADMIN_EMAILS || '';
+const ADMIN_EMAILS = adminEmailsString.split(',').map(email => email.trim().toLowerCase());
 
 export const loginWithGoogle = async () => {
   const provider = new GoogleAuthProvider();
