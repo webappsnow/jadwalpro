@@ -1,27 +1,43 @@
-﻿import type { Metadata, Viewport } from 'next';
-import { Plus_Jakarta_Sans } from 'next/font/google';
-import './globals.css';
+﻿'use client';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Sidebar } from '@/components/Sidebar';
+import { BottomNav } from '@/components/BottomNav';
+import { ToastProvider } from '@/hooks/useToast';
+import { useAdmin } from '@/hooks/useAdmin';
+import { useData } from '@/hooks/useData';
 
-const jakarta = Plus_Jakarta_Sans({ 
-  subsets: ['latin'], 
-  weight: ['400', '500', '600', '700', '800'] 
-});
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const { data } = useData();
+  // 1 PARAMETER SAJA
+  const { user, isAdmin, loading, logout } = useAdmin(data.adminEmails);
+  const router = useRouter();
 
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 1,
-};
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
 
-export const metadata: Metadata = {
-  title: 'UFO Kebonsari · Jadwal',
-  description: 'Sistem Jadwal Piket & Shift',
-};
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f8fafc', color: '#64748b' }}>
+        Memuat...
+      </div>
+    );
+  }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+  if (!user) return null;
+
   return (
-    <html lang="id">
-      <body className={jakarta.className}>{children}</body>
-    </html>
+    <ToastProvider>
+      <div className="layout-wrapper">
+        <Sidebar isAdmin={isAdmin} user={user} onLogout={logout} />
+        <main className={`main-content ${!isAdmin ? 'admin-locked' : ''}`}>
+          {children}
+        </main>
+        <BottomNav isAdmin={isAdmin} onAdminClick={() => {}} />
+      </div>
+    </ToastProvider>
   );
 }
