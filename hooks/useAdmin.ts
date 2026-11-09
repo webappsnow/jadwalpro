@@ -8,20 +8,27 @@ export function useAdmin(adminEmails: string[] = [], promotorEmails: string[] = 
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [unauthorized, setUnauthorized] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      // Cek apakah email ada di admin atau promotor
-      const allowed = checkIsAllowed(currentUser, adminEmails, promotorEmails);
-      const admin = checkIsAdmin(currentUser, adminEmails);
-      
-      if (currentUser && !allowed) {
-        // Jika login tapi tidak terdaftar, jangan set user (biarkan login page yang handle)
+      if (currentUser && currentUser.email) {
+        const allowed = checkIsAllowed(currentUser, adminEmails, promotorEmails);
+        const admin = checkIsAdmin(currentUser, adminEmails);
+
+        if (!allowed) {
+          setUser(null);
+          setIsAdmin(false);
+          setUnauthorized(true);
+        } else {
+          setUser(currentUser);
+          setIsAdmin(admin);
+          setUnauthorized(false);
+        }
+      } else {
         setUser(null);
         setIsAdmin(false);
-      } else {
-        setIsAdmin(admin);
+        setUnauthorized(false);
       }
       setLoading(false);
     });
@@ -38,5 +45,5 @@ export function useAdmin(adminEmails: string[] = [], promotorEmails: string[] = 
     setIsAdmin(false);
   };
 
-  return { user, isAdmin, loading, login, logout: signOutUser };
+  return { user, isAdmin, loading, login, logout: signOutUser, unauthorized };
 }
