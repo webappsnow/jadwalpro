@@ -4,6 +4,7 @@ import { useData } from '@/hooks/useData';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useToast } from '@/hooks/useToast';
 import { HARI_ORDER, HARI_LABELS, TUGAS_OPTIONS } from '@/lib/constants';
+import { ConfirmModal } from '@/components/ConfirmModal';
 
 // Fungsi warna kontras
 function getContrastYIQ(hexcolor: string){
@@ -35,6 +36,18 @@ export default function HarianPage() {
 
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [addTarget, setAddTarget] = useState<{day: string, area: string, tugas: string} | null>(null);
+
+  const [confirmState, setConfirmState] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    action: () => void;
+  }>({ isOpen: false, title: '', message: '', action: () => {} });
+
+  const openConfirm = (title: string, message: string, action: () => void) => {
+    setConfirmState({ isOpen: true, title, message, action });
+  };
+  const closeConfirm = () => setConfirmState(prev => ({ ...prev, isOpen: false }));
 
   const dayData = localHarian[activeDay as keyof typeof localHarian] || {};
   const areas = Object.keys(dayData).sort((a, b) => {
@@ -83,21 +96,25 @@ export default function HarianPage() {
     if (!isAdmin) return;
     const brand = localHarian[day as keyof typeof localHarian]?.[area]?.[tugas]?.[brandIndex];
     if (!brand) return;
-    if (!confirm(`Hapus brand "${brand}" dari ${tugas}?`)) return;
 
-    const newHarian = JSON.parse(JSON.stringify(localHarian));
-    newHarian[day as keyof typeof localHarian][area][tugas].splice(brandIndex, 1);
-    
-    // Update UI dulu
-    setLocalHarian(newHarian);
-    show(`${brand} dihapus`);
+    openConfirm(
+      'Hapus Brand',
+      `Apakah Anda yakin ingin menghapus brand "${brand}" dari tugas ${tugas}?`,
+      async () => {
+        const newHarian = JSON.parse(JSON.stringify(localHarian));
+        newHarian[day as keyof typeof localHarian][area][tugas].splice(brandIndex, 1);
+        
+        setLocalHarian(newHarian);
+        show(`${brand} dihapus`);
 
-    // Kirim ke Firebase
-    const ok = await saveData({ harian: newHarian });
-    if (!ok) {
-      show('Gagal menghapus di database', true);
-      setLocalHarian(data.harian);
-    }
+        const ok = await saveData({ harian: newHarian });
+        if (!ok) {
+          show('Gagal menghapus di database', true);
+          setLocalHarian(data.harian);
+        }
+        closeConfirm();
+      }
+    );
   };
 
   const openAddModal = (day: string, area: string, tugas: string) => {
@@ -220,18 +237,18 @@ export default function HarianPage() {
         </div>
       </div>
 
-      <div className="card-glass" style={{ padding: '8px', borderRadius: '16px', overflowX: 'auto' }}>
+      <div className="card-glass" style={{ padding: '0px', borderRadius: '16px', border: '1px solid #e2e8f0', overflowX: 'auto' }}>
         {areas.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '32px', color: '#94a3b8' }}>Belum ada data untuk hari ini.</div>
         ) : (
           <>
             <div className="desktop-only">
-              <table className="table-harian" style={{ width: '100%' }}>
+              <table className="table-harian" style={{ width: '100%', tableLayout: 'fixed' }}>
                 <thead>
                   <tr>
-                    <th style={{ width: '110px' }}>AREA</th>
-                    <th style={{ width: '220px' }}>TUGAS</th>
-                    <th>BRAND PENANGGUNG JAWAB</th>
+                    <th style={{ width: '120px', textAlign: 'center' }}>AREA</th>
+                    <th style={{ width: '280px', textAlign: 'left', paddingLeft: '16px' }}>TUGAS</th>
+                    <th style={{ textAlign: 'left', paddingLeft: '16px' }}>BRAND PENANGGUNG JAWAB</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -241,7 +258,7 @@ export default function HarianPage() {
                     if (tugasKeys.length === 0) {
                       return (
                         <tr key={area} className="area-start">
-                          <td className="area-cell">{area}</td>
+                          <td className="area-cell" style={{ textAlign: 'center' }}>{area}</td>
                           <td className="tugas-cell">-</td>
                           <td><span className="brand-chip empty">-</span></td>
                         </tr>
@@ -252,9 +269,11 @@ export default function HarianPage() {
                       const isGeneralCleaning = tugas.includes('GENERAL CLEANING');
                       return (
                         <tr key={`${area}-${tugas}`} className={i === 0 ? 'area-start' : ''}>
-                          {i === 0 && <td className="area-cell" rowSpan={tugasKeys.length}>{area}</td>}
-                          <td className="tugas-cell">{tugas}</td>
-                          <td>
+                          {i === 0 && <td className="area-cell" rowSpan={tugasKeys.length} style={{ textAlign: 'center', verticalAlign: 'middle' }}>{area}</td>}
+                          <td className="tugas-cell" style={{ whiteSpace: 'normal', lineHeight: '1.3', paddingLeft: '16px' }}>
+                            {tugas}
+                          </td>
+                          <td style={{ paddingLeft: '16px', textAlign: 'left' }}>
                             {isGeneralCleaning ? (
                               <span style={{ fontSize: '0.8rem', color: '#475569', fontWeight: 600 }}>Semua Promotor Shift Pagi</span>
                             ) : (
@@ -365,6 +384,15 @@ export default function HarianPage() {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={confirmState.isOpen}
+        title={confirmState.title}
+        message={confirmState.message}
+        onConfirm={confirmState.action}
+        onCancel={closeConfirm}
+        isDanger={true}
+      />
     </section>
   );
 }
