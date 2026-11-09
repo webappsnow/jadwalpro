@@ -8,20 +8,23 @@ import { useAdmin } from '@/hooks/useAdmin';
 import { useData } from '@/hooks/useData';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { data } = useData();
-  const { user, isAdmin, loading, logout } = useAdmin(data.adminEmails);
+  const { data, loading: dataLoading } = useData(); // Ambil status loading data
+  const { user, isAdmin, loading: authLoading, logout } = useAdmin(data.adminEmails, data.promotorEmails);
   const router = useRouter();
 
+  // Tunggu kedua loading selesai
+  const isLoading = dataLoading || authLoading;
+
   useEffect(() => {
-    if (!loading && !user) {
+    if (!isLoading && !user) {
       router.push('/login');
     }
-  }, [user, loading, router]);
+  }, [user, isLoading, router]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f8fafc', color: '#64748b' }}>
-        Memuat...
+        Memuat aplikasi...
       </div>
     );
   }

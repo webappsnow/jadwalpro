@@ -11,9 +11,10 @@ export function useData() {
     colors: {},
     harian: DEFAULT_HARIAN,
     adminEmails: [],
-    promotorEmails: [], // WAJIB: Tambahkan ini
+    promotorEmails: [],
   });
   const [syncing, setSyncing] = useState(false);
+  const [loading, setLoading] = useState(true); // Tambahkan state loading
 
   useEffect(() => {
     const unsub = onSnapshot(doc(db, 'config', 'ufo_data'), (snap) => {
@@ -27,7 +28,7 @@ export function useData() {
           colors: d.colors || {},
           harian: d.harian || DEFAULT_HARIAN,
           adminEmails: d.adminEmails || [],
-          promotorEmails: d.promotorEmails || [], // WAJIB
+          promotorEmails: d.promotorEmails || [],
         });
       } else {
         setData({
@@ -35,9 +36,10 @@ export function useData() {
           colors: {},
           harian: DEFAULT_HARIAN,
           adminEmails: [],
-          promotorEmails: [], // WAJIB
+          promotorEmails: [],
         });
       }
+      setLoading(false); // Set false setelah data dimuat
     });
 
     return () => unsub();
@@ -59,5 +61,5 @@ export function useData() {
     }
   }, [data]);
 
-  return { data, setData, saveData, syncing };
+  return { data, setData, saveData, syncing, loading };
 }
