@@ -9,7 +9,6 @@ import { useData } from '@/hooks/useData';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { data } = useData();
-  // HANYA 1 PARAMETER
   const { user, isAdmin, loading, logout } = useAdmin(data.adminEmails);
   const router = useRouter();
 
@@ -34,44 +33,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="layout-wrapper">
         <Sidebar isAdmin={isAdmin} user={user} onLogout={logout} />
         
+        {/* Konten Utama (Tanpa Top Bar Mobile) */}
         <main className={`main-content ${!isAdmin ? 'admin-locked' : ''}`}>
-          
-          {/* TOP BAR MOBILE (Tombol Logout) */}
-          <div className="mobile-only" style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center', 
-            padding: '12px 16px', 
-            background: 'rgba(255, 255, 255, 0.9)', 
-            backdropFilter: 'blur(10px)',
-            borderBottom: '1px solid #e2e8f0',
-            marginBottom: '16px',
-            borderRadius: '12px'
-          }}>
-            <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.9rem' }}>
-              {isAdmin ? 'Admin Panel' : 'Promotor'}
-            </div>
-            <button 
-              onClick={logout} 
-              style={{ 
-                padding: '6px 12px', 
-                fontSize: '0.75rem', 
-                fontWeight: 600,
-                borderRadius: '8px',
-                background: '#fee2e2',
-                color: '#dc2626',
-                border: 'none',
-                cursor: 'pointer'
-              }}
-            >
-              Logout
-            </button>
-          </div>
-
           {children}
         </main>
         
-        <BottomNav isAdmin={isAdmin} onAdminClick={() => {}} />
+        {/* Bottom Nav (Tombol Logout sudah ada di sini) */}
+        <BottomNav isAdmin={isAdmin} onAdminClick={() => {}} onLogout={logout} />
       </div>
     </ToastProvider>
   );
