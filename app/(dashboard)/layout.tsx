@@ -5,14 +5,16 @@ import { Sidebar } from '@/components/Sidebar';
 import { BottomNav } from '@/components/BottomNav';
 import { ToastProvider } from '@/hooks/useToast';
 import { useAdmin } from '@/hooks/useAdmin';
+import { useData } from '@/hooks/useData';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { user, isAdmin, loading, logout } = useAdmin();
+  const { data } = useData();
+  const { user, isAdmin, loading, logout } = useAdmin(data.adminEmails);
   const router = useRouter();
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/login'); // Jika tidak ada user, lempar ke halaman login
+      router.push('/login');
     }
   }, [user, loading, router]);
 
@@ -24,7 +26,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
-  if (!user) return null; // Mencegah render sebelum redirect selesai
+  if (!user) return null;
 
   return (
     <ToastProvider>
@@ -39,7 +41,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </main>
         <BottomNav
           isAdmin={isAdmin}
-          onAdminClick={() => {}} // Tidak perlu login lagi karena sudah di halaman login
+          onAdminClick={() => {}}
         />
       </div>
     </ToastProvider>

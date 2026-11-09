@@ -4,7 +4,7 @@ import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { checkIsAdmin, loginWithGoogle, logout } from '@/lib/auth';
 
-export function useAdmin() {
+export function useAdmin(adminEmails: string[] = []) {
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -12,11 +12,11 @@ export function useAdmin() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      setIsAdmin(checkIsAdmin(currentUser));
+      setIsAdmin(checkIsAdmin(currentUser, adminEmails));
       setLoading(false);
     });
     return () => unsubscribe();
-  }, []);
+  }, [adminEmails]);
 
   const login = async () => {
     await loginWithGoogle();

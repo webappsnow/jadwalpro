@@ -6,12 +6,11 @@ import type { AppData } from '@/lib/types';
 import { DEFAULT_HARIAN } from '@/lib/constants';
 
 export function useData() {
-  // PERBAIKAN: Tambahkan adminEmails: [] di state awal
   const [data, setData] = useState<AppData>({
     sales: [],
     colors: {},
     harian: DEFAULT_HARIAN,
-    adminEmails: [], 
+    adminEmails: [],
   });
   const [syncing, setSyncing] = useState(false);
 
@@ -19,7 +18,6 @@ export function useData() {
     const unsub = onSnapshot(doc(db, 'config', 'ufo_data'), (snap) => {
       if (snap.exists()) {
         const d = snap.data();
-        // PERBAIKAN: Pastikan adminEmails ikut di-set saat mengambil data
         setData({
           sales: (d.sales || []).map((s: any, i: number) => ({
             ...s,
@@ -30,7 +28,6 @@ export function useData() {
           adminEmails: d.adminEmails || [],
         });
       } else {
-        // PERBAIKAN: Pastikan adminEmails ikut di-set jika data kosong
         setData({
           sales: [],
           colors: {},

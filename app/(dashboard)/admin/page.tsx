@@ -7,13 +7,16 @@ import { ConfirmModal } from '@/components/ConfirmModal';
 
 export default function AdminPage() {
   const { data, saveData } = useData();
-  const { isAdmin, loading } = useAdmin();
+  const { isAdmin, loading } = useAdmin(data.adminEmails);
   const { show } = useToast();
 
   const [newBrand, setNewBrand] = useState('');
   const [newName, setNewName] = useState('');
   const [newShiftDay, setNewShiftDay] = useState('P');
-
+  
+  // STATE UNTUK EMAIL ADMIN
+  const [newAdminEmail, setNewAdminEmail] = useState('');
+  
   const [colorBrand, setColorBrand] = useState('');
   const [colorValue, setColorValue] = useState('#dbeafe');
 
@@ -52,6 +55,41 @@ export default function AdminPage() {
       </div>
     );
   }
+
+  // FUNGSI UNTUK TAMBAH EMAIL ADMIN
+  const handleAddAdminEmail = async () => {
+    const email = newAdminEmail.trim().toLowerCase();
+    if (!email || !email.includes('@')) { show('Masukkan email yang valid', true); return; }
+    
+    if (data.adminEmails.includes(email)) {
+      show('Email sudah terdaftar sebagai admin', true);
+      return;
+    }
+    
+    const newEmails = [...data.adminEmails, email];
+    const ok = await saveData({ adminEmails: newEmails });
+    if (ok) {
+      show('Email admin berhasil ditambahkan');
+      setNewAdminEmail('');
+    } else {
+      show('Gagal menambahkan email admin', true);
+    }
+  };
+
+  // FUNGSI UNTUK HAPUS EMAIL ADMIN
+  const handleRemoveAdminEmail = (email: string) => {
+    openConfirm(
+      'Hapus Email Admin',
+      `Hapus akses admin untuk ${email}?`,
+      async () => {
+        const newEmails = data.adminEmails.filter(e => e !== email);
+        const ok = await saveData({ adminEmails: newEmails });
+        if (ok) show(`${email} dihapus dari admin`);
+        closeConfirm();
+      },
+      true
+    );
+  };
 
   const handleAddSales = async () => {
     const brand = newBrand.trim().toUpperCase();
@@ -136,7 +174,38 @@ export default function AdminPage() {
 
       <div className="card-glass" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
         
-        {/* Baris 1: Tambah Sales & Warna */}
+        {/* Kelola Email Admin */}
+        <div>
+          <h3 style={{ fontWeight: 700, color: '#334155', marginBottom: '12px' }}>Kelola Akses Admin (Email Google)</h3>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
+            <input 
+              type="email" 
+              placeholder="Masukkan email Google untuk dijadikan Admin..." 
+              className="admin-input" 
+              style={{ flex: 1, minWidth: '200px' }} 
+              value={newAdminEmail} 
+              onChange={e => setNewAdminEmail(e.target.value)} 
+            />
+            <button className="btn-modern btn-primary" onClick={handleAddAdminEmail}>Tambah Admin</button>
+          </div>
+          
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            {data.adminEmails.length === 0 ? (
+              <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Belum ada email admin terdaftar (selain yang sedang login).</span>
+            ) : (
+              data.adminEmails.map((email) => (
+                <span key={email} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'white', padding: '6px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.8rem', fontWeight: 600 }}>
+                  {email}
+                  <button onClick={() => handleRemoveAdminEmail(email)} style={{ border: 'none', background: 'transparent', color: '#cbd5e1', fontWeight: 'bold', cursor: 'pointer' }}>✕</button>
+                </span>
+              ))
+            )}
+          </div>
+        </div>
+
+        <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0' }} />
+
+        {/* Tambah Sales & Warna */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
           
           <div>
@@ -176,7 +245,7 @@ export default function AdminPage() {
 
         <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0' }} />
 
-        {/* Baris 2: Hapus Sales & Kosongkan */}
+        {/* Hapus Sales & Kosongkan */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
           <div>
             <h3 style={{ fontWeight: 700, color: '#334155', marginBottom: '8px', fontSize: '0.9rem' }}>Hapus Sales</h3>
@@ -201,7 +270,7 @@ export default function AdminPage() {
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-end' }}>
             <button className="btn-modern btn-outline" style={{ width: '100%' }} onClick={() => {
-              openConfirm('Kosongkan Piket Harian', 'Kosongkan semua jadwal piket harian? (Area tetap ada, brand akan dihapus semua).', async () => {
+              openConfirm('Kosongkan Piket Harian', 'Kosongkan semua jadwal piket harian?', async () => {
                 const emptyHarian: any = {};
                 ['senin','selasa','rabu','kamis','jumat','sabtu','minggu'].forEach(day => {
                   emptyHarian[day] = {
@@ -220,7 +289,7 @@ export default function AdminPage() {
 
         <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0' }} />
 
-        {/* Baris 3: Daftar Sales */}
+        {/* Daftar Sales */}
         <div>
           <h3 style={{ fontWeight: 700, color: '#334155', marginBottom: '12px' }}>Daftar Sales Terdaftar</h3>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>

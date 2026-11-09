@@ -6,10 +6,6 @@ import {
 import { auth } from './firebase';
 import type { User } from 'firebase/auth';
 
-// Ambil daftar email dari Environment Variable
-const adminEmailsString = process.env.NEXT_PUBLIC_ADMIN_EMAILS || '';
-const ADMIN_EMAILS = adminEmailsString.split(',').map(email => email.trim().toLowerCase());
-
 export const loginWithGoogle = async () => {
   const provider = new GoogleAuthProvider();
   try {
@@ -25,7 +21,7 @@ export const logout = async () => {
   await signOut(auth);
 };
 
-export const checkIsAdmin = (user: User | null) => {
+export const checkIsAdmin = (user: User | null, adminEmails: string[]) => {
   if (!user || !user.email) return false;
-  return ADMIN_EMAILS.includes(user.email.toLowerCase());
+  return adminEmails.map(e => e.toLowerCase()).includes(user.email.toLowerCase());
 };
