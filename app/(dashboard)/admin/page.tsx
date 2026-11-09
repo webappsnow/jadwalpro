@@ -7,8 +7,7 @@ import { ConfirmModal } from '@/components/ConfirmModal';
 
 export default function AdminPage() {
   const { data, saveData } = useData();
-  // PERBAIKAN: useAdmin hanya menerima 1 parameter (adminEmails)
-  const { isAdmin, loading } = useAdmin(data.adminEmails);
+  const { isAdmin, loading } = useAdmin(data.adminEmails, data.promotorEmails);
   const { show } = useToast();
 
   const [newBrand, setNewBrand] = useState('');
@@ -55,14 +54,14 @@ export default function AdminPage() {
     const email = newAdminEmail.trim().toLowerCase();
     if (!email || !email.includes('@')) return show('Email tidak valid', true);
     if (data.adminEmails.includes(email)) return show('Email sudah ada', true);
-    if (data.promotorEmails?.includes(email)) return show('Email ada di promotor', true);
+    if (data.promotorEmails.includes(email)) return show('Email ada di promotor', true);
     
     const ok = await saveData({ adminEmails: [...data.adminEmails, email] });
     if (ok) { show('Admin ditambahkan'); setNewAdminEmail(''); }
   };
 
   const handleRemoveAdminEmail = (email: string) => {
-    openConfirm('Hapus Admin', `Hapus ${email}?`, async () => {
+    openConfirm('Hapus Admin', `Hapus akses admin untuk ${email}?`, async () => {
       await saveData({ adminEmails: data.adminEmails.filter(e => e !== email) });
       show('Admin dihapus');
       closeConfirm();
@@ -73,18 +72,16 @@ export default function AdminPage() {
   const handleAddPromotorEmail = async () => {
     const email = newPromotorEmail.trim().toLowerCase();
     if (!email || !email.includes('@')) return show('Email tidak valid', true);
-    if (data.promotorEmails?.includes(email)) return show('Email sudah ada', true);
+    if (data.promotorEmails.includes(email)) return show('Email sudah ada', true);
     if (data.adminEmails.includes(email)) return show('Email ada di admin', true);
     
-    const newPromotorEmails = data.promotorEmails || [];
-    const ok = await saveData({ promotorEmails: [...newPromotorEmails, email] });
+    const ok = await saveData({ promotorEmails: [...data.promotorEmails, email] });
     if (ok) { show('Promotor ditambahkan'); setNewPromotorEmail(''); }
   };
 
   const handleRemovePromotorEmail = (email: string) => {
-    openConfirm('Hapus Promotor', `Hapus ${email}?`, async () => {
-      const newPromotorEmails = (data.promotorEmails || []).filter(e => e !== email);
-      await saveData({ promotorEmails: newPromotorEmails });
+    openConfirm('Hapus Promotor', `Hapus akses promotor untuk ${email}?`, async () => {
+      await saveData({ promotorEmails: data.promotorEmails.filter(e => e !== email) });
       show('Promotor dihapus');
       closeConfirm();
     }, true);
@@ -113,11 +110,12 @@ export default function AdminPage() {
     const idx = parseInt(deleteIdx);
     if (isNaN(idx)) { show('Pilih sales terlebih dahulu', true); return; }
     
-    openConfirm('Hapus Sales', 'Hapus sales ini?', async () => {
+    openConfirm('Hapus Sales', 'Apakah Anda yakin ingin menghapus sales ini dari daftar?', async () => {
       const newSales = [...data.sales];
       newSales.splice(idx, 1);
       const ok = await saveData({ sales: newSales });
       if (ok) { show('Sales dihapus'); setDeleteIdx(''); }
+      else show('Gagal menghapus', true);
       closeConfirm();
     }, true);
   };
@@ -131,7 +129,7 @@ export default function AdminPage() {
   };
 
   const handleRemoveColor = (brand: string) => {
-    openConfirm('Hapus Warna', `Hapus warna untuk ${brand}?`, async () => {
+    openConfirm('Hapus Warna', `Hapus warna untuk brand ${brand}?`, async () => {
       const newColors = { ...data.colors };
       const keyToDelete = Object.keys(newColors).find(k => k.trim().toUpperCase() === brand.trim().toUpperCase());
       if (keyToDelete) delete newColors[keyToDelete];
@@ -161,6 +159,7 @@ export default function AdminPage() {
             {data.adminEmails.map((email) => (
               <span key={email} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'white', padding: '6px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.8rem', fontWeight: 600 }}>
                 {email}
+                {/* TOMBOL HAPUS ADMIN */}
                 <button onClick={() => handleRemoveAdminEmail(email)} style={{ border: 'none', background: 'transparent', color: '#cbd5e1', fontWeight: 'bold', cursor: 'pointer' }}>✕</button>
               </span>
             ))}
@@ -177,9 +176,10 @@ export default function AdminPage() {
             <button className="btn-modern btn-primary" onClick={handleAddPromotorEmail}>Tambah Promotor</button>
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-            {(data.promotorEmails || []).map((email) => (
+            {data.promotorEmails.map((email) => (
               <span key={email} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'white', padding: '6px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.8rem', fontWeight: 600 }}>
                 {email}
+                {/* TOMBOL HAPUS PROMOTOR */}
                 <button onClick={() => handleRemovePromotorEmail(email)} style={{ border: 'none', background: 'transparent', color: '#cbd5e1', fontWeight: 'bold', cursor: 'pointer' }}>✕</button>
               </span>
             ))}
