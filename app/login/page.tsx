@@ -5,17 +5,19 @@ import { useAdmin } from '@/hooks/useAdmin';
 import { useData } from '@/hooks/useData';
 
 export default function LoginPage() {
-  const { data } = useData();
-  const { user, login, loading, unauthorized } = useAdmin(data.adminEmails, data.promotorEmails);
+  const { data, loading: dataLoading } = useData();
+  const { user, login, loading: authLoading, unauthorized } = useAdmin(data.adminEmails, data.promotorEmails);
   const router = useRouter();
 
+  const isLoading = dataLoading || authLoading;
+
   useEffect(() => {
-    if (!loading && user) {
+    if (!isLoading && user) {
       router.push('/shift'); 
     }
-  }, [user, loading, router]);
+  }, [user, isLoading, router]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f8fafc', color: '#64748b' }}>
         Memuat...

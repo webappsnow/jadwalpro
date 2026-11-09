@@ -11,16 +11,9 @@ export function useAdmin(adminEmails: string[] = [], promotorEmails: string[] = 
   const [unauthorized, setUnauthorized] = useState(false);
 
   useEffect(() => {
-    // Jika data adminEmails belum siap (masih kosong), jangan lakukan apa-apa dulu
+    // JIKA data admin belum termuat, tunggu (jangan lakukan pengecekan apa pun)
     if (adminEmails.length === 0 && promotorEmails.length === 0) {
-      // Tapi kita tetap harus menunggu auth selesai
-      const unsub = onAuthStateChanged(auth, (currentUser) => {
-        if (currentUser) {
-          setUser(currentUser);
-        }
-        setLoading(false);
-      });
-      return () => unsub();
+      return;
     }
 
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {

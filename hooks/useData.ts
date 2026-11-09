@@ -44,7 +44,6 @@ export function useData() {
           setLoading(false);
         }, (error) => {
           console.warn("Gagal baca data:", error);
-          setData({ sales: [], colors: {}, harian: DEFAULT_HARIAN, adminEmails: [], promotorEmails: [] });
           setLoading(false);
         });
       } else {
