@@ -1,7 +1,8 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase'; // Import auth
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth'; // Import onAuthStateChanged
 import type { AppData } from '@/lib/types';
 import { DEFAULT_HARIAN } from '@/lib/constants';
 
@@ -14,23 +15,46 @@ export function useData() {
     promotorEmails: [],
   });
   const [syncing, setSyncing] = useState(false);
-  const [loading, setLoading] = useState(true); // Tambahkan state loading
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsub = onSnapshot(doc(db, 'config', 'ufo_data'), (snap) => {
-      if (snap.exists()) {
-        const d = snap.data();
-        setData({
-          sales: (d.sales || []).map((s: any, i: number) => ({
-            ...s,
-            id: s.id || `sales-${i}-${Date.now()}`,
-          })),
-          colors: d.colors || {},
-          harian: d.harian || DEFAULT_HARIAN,
-          adminEmails: d.adminEmails || [],
-          promotorEmails: d.promotorEmails || [],
+    let unsubSnapshot: (() => void) | null = null;
+
+    // Dengarkan status login user
+    const unsubAuth = onAuthStateChanged(auth, (user) => {
+      if (unsubSnapshot) {
+        unsubSnapshot();
+        unsubSnapshot = null;
+      }
+
+      if (user) {
+        // Jika user login, mulai dengarkan data Firebase
+        unsubSnapshot = onSnapshot(doc(db, 'config', 'ufo_data'), (snap) => {
+          if (snap.exists()) {
+            const d = snap.data();
+            setData({
+              sales: (d.sales || []).map((s: any, i: number) => ({
+                ...s,
+                id: s.id || `sales-${i}-${Date.now()}`,
+              })),
+              colors: d.colors || {},
+              harian: d.harian || DEFAULT_HARIAN,
+              adminEmails: d.adminEmails || [],
+              promotorEmails: d.promotorEmails || [],
+            });
+          } else {
+            setData({
+              sales: [],
+              colors: {},
+              harian: DEFAULT_HARIAN,
+              adminEmails: [],
+              promotorEmails: [],
+            });
+          }
+          setLoading(false);
         });
       } else {
+        // Jika user belum login, set data kosong dan loading false
         setData({
           sales: [],
           colors: {},
@@ -38,11 +62,14 @@ export function useData() {
           adminEmails: [],
           promotorEmails: [],
         });
+        setLoading(false);
       }
-      setLoading(false); // Set false setelah data dimuat
     });
 
-    return () => unsub();
+    return () => {
+      if (unsubSnapshot) unsubSnapshot();
+      unsubAuth();
+    };
   }, []);
 
   const saveData = useCallback(async (newData: Partial<AppData>) => {
