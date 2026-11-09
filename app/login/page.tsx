@@ -1,15 +1,13 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { loginWithGoogle } from '@/lib/auth';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [unauthorized, setUnauthorized] = useState(false);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
@@ -29,25 +27,19 @@ export default function LoginPage() {
 
           if (isAllowed) {
             router.push('/shift');
-            return;
           } else {
-            await signOut(auth);
-            setUnauthorized(true);
+            // Jika tidak terdaftar, logout
+            await auth.signOut();
+            alert('Email Anda belum terdaftar. Silakan hubungi Admin.');
           }
-        } else {
-          // Jika database kosong, tolak
-          await signOut(auth);
-          setUnauthorized(true);
         }
       }
-      setLoading(false);
     });
 
     return () => unsub();
   }, [router]);
 
   const handleLogin = async () => {
-    setUnauthorized(false);
     try {
       await loginWithGoogle();
     } catch (error) {
@@ -55,17 +47,23 @@ export default function LoginPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f8fafc', color: '#64748b' }}>
-        Memuat...
-      </div>
-    );
-  }
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'linear-gradient(135deg, #f0f4f9 0%, #f8fafc 100%)', padding: '20px' }}>
-      <div className="card-glass" style={{ padding: '40px 32px', borderRadius: '24px', maxWidth: '400px', width: '100%', textAlign: 'center' }}>
+    <div style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      minHeight: '100vh', 
+      background: 'linear-gradient(135deg, #f0f4f9 0%, #f8fafc 100%)', 
+      padding: '20px' 
+    }}>
+      <div className="card-glass" style={{ 
+        padding: '40px 32px', 
+        borderRadius: '24px', 
+        maxWidth: '400px', 
+        width: '100%', 
+        textAlign: 'center' 
+      }}>
         <img src="/logo-ufo.png" alt="Logo" style={{ width: '140px', height: 'auto', margin: '0 auto 16px auto' }} />
         
         <p style={{ fontSize: '0.8rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '8px' }}>
@@ -76,15 +74,9 @@ export default function LoginPage() {
           Selamat Datang
         </h1>
         
-        {unauthorized ? (
-          <p style={{ color: '#ef4444', marginBottom: '24px', fontSize: '0.9rem', fontWeight: 600, lineHeight: 1.5 }}>
-            Maaf, email Anda belum terdaftar. Silakan hubungi Admin.
-          </p>
-        ) : (
-          <p style={{ color: '#64748b', marginBottom: '32px', fontSize: '0.9rem', lineHeight: 1.5 }}>
-            Silakan login dengan akun Google Anda untuk mengakses jadwal.
-          </p>
-        )}
+        <p style={{ color: '#64748b', marginBottom: '32px', fontSize: '0.9rem', lineHeight: 1.5 }}>
+          Silakan login dengan akun Google Anda untuk mengakses jadwal.
+        </p>
         
         <button 
           onClick={handleLogin} 
