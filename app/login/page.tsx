@@ -36,7 +36,7 @@ export default function LoginPage() {
       padding: '20px' 
     }}>
       <div className="card-glass" style={{ 
-        padding: '40px 32px', // Padding lebih besar agar teks tidak terpotong
+        padding: '40px 32px',
         borderRadius: '24px', 
         maxWidth: '400px', 
         width: '100%', 
@@ -53,7 +53,7 @@ export default function LoginPage() {
           letterSpacing: '2px', 
           marginBottom: '8px' 
         }}>
-          UFO Kebonsari
+          Jadwal Promotor UFO Kebonsari
         </p>
 
         <h1 style={{ 
