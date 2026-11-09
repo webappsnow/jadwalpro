@@ -24,5 +24,6 @@ export interface AppData {
   colors: Record<string, string>;
   harian: HarianData;
   adminEmails: string[];
+  promotorEmails: string[]; // Tambahan untuk daftar promotor
   updatedAt?: string;
 }

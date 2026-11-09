@@ -9,7 +9,7 @@ import { useData } from '@/hooks/useData';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { data } = useData();
-  const { user, isAdmin, loading, logout } = useAdmin(data.adminEmails);
+  const { user, isAdmin, loading, logout } = useAdmin(data.adminEmails, data.promotorEmails);
   const router = useRouter();
 
   useEffect(() => {
@@ -31,18 +31,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <ToastProvider>
       <div className="layout-wrapper">
-        <Sidebar
-          isAdmin={isAdmin}
-          user={user}
-          onLogout={logout}
-        />
-        <main className={`main-content ${!isAdmin ? 'admin-locked' : ''}`}>
-          {children}
-        </main>
-        <BottomNav
-          isAdmin={isAdmin}
-          onAdminClick={() => {}}
-        />
+        <Sidebar isAdmin={isAdmin} user={user} onLogout={logout} />
+        <main className={`main-content ${!isAdmin ? 'admin-locked' : ''}`}>{children}</main>
+        <BottomNav isAdmin={isAdmin} onAdminClick={() => {}} />
       </div>
     </ToastProvider>
   );

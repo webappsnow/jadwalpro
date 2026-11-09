@@ -7,15 +7,15 @@ import { ConfirmModal } from '@/components/ConfirmModal';
 
 export default function AdminPage() {
   const { data, saveData } = useData();
-  const { isAdmin, loading } = useAdmin(data.adminEmails);
+  const { isAdmin, loading } = useAdmin(data.adminEmails, data.promotorEmails);
   const { show } = useToast();
 
   const [newBrand, setNewBrand] = useState('');
   const [newName, setNewName] = useState('');
   const [newShiftDay, setNewShiftDay] = useState('P');
   
-  // STATE UNTUK EMAIL ADMIN
   const [newAdminEmail, setNewAdminEmail] = useState('');
+  const [newPromotorEmail, setNewPromotorEmail] = useState('');
   
   const [colorBrand, setColorBrand] = useState('');
   const [colorValue, setColorValue] = useState('#dbeafe');
@@ -47,48 +47,52 @@ export default function AdminPage() {
   if (!isAdmin) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', textAlign: 'center', color: '#64748b' }}>
-        <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" style={{ marginBottom: '16px', color: '#cbd5e1' }}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-        </svg>
         <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '8px' }}>Akses Ditolak</h2>
         <p style={{ fontSize: '0.95rem' }}>Halaman ini hanya dapat diakses oleh Admin.</p>
       </div>
     );
   }
 
-  // FUNGSI UNTUK TAMBAH EMAIL ADMIN
   const handleAddAdminEmail = async () => {
     const email = newAdminEmail.trim().toLowerCase();
     if (!email || !email.includes('@')) { show('Masukkan email yang valid', true); return; }
-    
-    if (data.adminEmails.includes(email)) {
-      show('Email sudah terdaftar sebagai admin', true);
-      return;
-    }
+    if (data.adminEmails.includes(email)) { show('Email sudah terdaftar sebagai admin', true); return; }
+    if (data.promotorEmails.includes(email)) { show('Email sudah terdaftar sebagai promotor', true); return; }
     
     const newEmails = [...data.adminEmails, email];
     const ok = await saveData({ adminEmails: newEmails });
-    if (ok) {
-      show('Email admin berhasil ditambahkan');
-      setNewAdminEmail('');
-    } else {
-      show('Gagal menambahkan email admin', true);
-    }
+    if (ok) { show('Email admin berhasil ditambahkan'); setNewAdminEmail(''); }
+    else show('Gagal menambahkan email admin', true);
   };
 
-  // FUNGSI UNTUK HAPUS EMAIL ADMIN
+  const handleAddPromotorEmail = async () => {
+    const email = newPromotorEmail.trim().toLowerCase();
+    if (!email || !email.includes('@')) { show('Masukkan email yang valid', true); return; }
+    if (data.promotorEmails.includes(email)) { show('Email sudah terdaftar sebagai promotor', true); return; }
+    if (data.adminEmails.includes(email)) { show('Email sudah terdaftar sebagai admin', true); return; }
+    
+    const newEmails = [...data.promotorEmails, email];
+    const ok = await saveData({ promotorEmails: newEmails });
+    if (ok) { show('Email promotor berhasil ditambahkan'); setNewPromotorEmail(''); }
+    else show('Gagal menambahkan email promotor', true);
+  };
+
   const handleRemoveAdminEmail = (email: string) => {
-    openConfirm(
-      'Hapus Email Admin',
-      `Hapus akses admin untuk ${email}?`,
-      async () => {
-        const newEmails = data.adminEmails.filter(e => e !== email);
-        const ok = await saveData({ adminEmails: newEmails });
-        if (ok) show(`${email} dihapus dari admin`);
-        closeConfirm();
-      },
-      true
-    );
+    openConfirm('Hapus Email Admin', `Hapus akses admin untuk ${email}?`, async () => {
+      const newEmails = data.adminEmails.filter(e => e !== email);
+      const ok = await saveData({ adminEmails: newEmails });
+      if (ok) show(`${email} dihapus dari admin`);
+      closeConfirm();
+    }, true);
+  };
+
+  const handleRemovePromotorEmail = (email: string) => {
+    openConfirm('Hapus Email Promotor', `Hapus akses promotor untuk ${email}?`, async () => {
+      const newEmails = data.promotorEmails.filter(e => e !== email);
+      const ok = await saveData({ promotorEmails: newEmails });
+      if (ok) show(`${email} dihapus dari promotor`);
+      closeConfirm();
+    }, true);
   };
 
   const handleAddSales = async () => {
@@ -104,44 +108,29 @@ export default function AdminPage() {
     };
     const pattern = mapShift[newShiftDay] || mapShift['P'];
 
-    const newSales = [
-      ...data.sales,
-      { id: `sales-${Date.now()}`, brand, name, senin: newShiftDay as any, ...pattern, toilet: '', toilet2: '' }
-    ];
-
+    const newSales = [...data.sales, { id: `sales-${Date.now()}`, brand, name, senin: newShiftDay as any, ...pattern, toilet: '', toilet2: '' }];
     const ok = await saveData({ sales: newSales });
-    if (ok) {
-      show('Sales berhasil ditambahkan');
-      setNewBrand('');
-      setNewName('');
-    } else {
-      show('Gagal menambahkan sales', true);
-    }
+    if (ok) { show('Sales berhasil ditambahkan'); setNewBrand(''); setNewName(''); }
+    else show('Gagal menambahkan sales', true);
   };
 
   const handleDeleteSales = () => {
     const idx = parseInt(deleteIdx);
     if (isNaN(idx)) { show('Pilih sales terlebih dahulu', true); return; }
     
-    openConfirm(
-      'Hapus Sales',
-      'Apakah Anda yakin ingin menghapus sales ini dari daftar?',
-      async () => {
-        const newSales = [...data.sales];
-        newSales.splice(idx, 1);
-        const ok = await saveData({ sales: newSales });
-        if (ok) { show('Sales dihapus'); setDeleteIdx(''); }
-        else show('Gagal menghapus', true);
-        closeConfirm();
-      },
-      true
-    );
+    openConfirm('Hapus Sales', 'Apakah Anda yakin ingin menghapus sales ini dari daftar?', async () => {
+      const newSales = [...data.sales];
+      newSales.splice(idx, 1);
+      const ok = await saveData({ sales: newSales });
+      if (ok) { show('Sales dihapus'); setDeleteIdx(''); }
+      else show('Gagal menghapus', true);
+      closeConfirm();
+    }, true);
   };
 
   const handleSetColor = async () => {
     const brand = colorBrand.trim().toUpperCase();
     if (!brand) { show('Masukkan nama brand', true); return; }
-
     const newColors = { ...data.colors, [brand]: colorValue };
     const ok = await saveData({ colors: newColors });
     if (ok) { show('Warna brand diset'); setColorBrand(''); }
@@ -149,20 +138,14 @@ export default function AdminPage() {
   };
 
   const handleRemoveColor = (brand: string) => {
-    openConfirm(
-      'Hapus Warna',
-      `Hapus warna untuk brand ${brand}?`,
-      async () => {
-        const newColors = { ...data.colors };
-        const keyToDelete = Object.keys(newColors).find(k => k.trim().toUpperCase() === brand.trim().toUpperCase());
-        if (keyToDelete) delete newColors[keyToDelete];
-
-        const ok = await saveData({ colors: newColors });
-        if (ok) show(`${brand} dihapus`);
-        closeConfirm();
-      },
-      true
-    );
+    openConfirm('Hapus Warna', `Hapus warna untuk brand ${brand}?`, async () => {
+      const newColors = { ...data.colors };
+      const keyToDelete = Object.keys(newColors).find(k => k.trim().toUpperCase() === brand.trim().toUpperCase());
+      if (keyToDelete) delete newColors[keyToDelete];
+      const ok = await saveData({ colors: newColors });
+      if (ok) show(`${brand} dihapus`);
+      closeConfirm();
+    }, true);
   };
 
   return (
@@ -178,20 +161,12 @@ export default function AdminPage() {
         <div>
           <h3 style={{ fontWeight: 700, color: '#334155', marginBottom: '12px' }}>Kelola Akses Admin (Email Google)</h3>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
-            <input 
-              type="email" 
-              placeholder="Masukkan email Google untuk dijadikan Admin..." 
-              className="admin-input" 
-              style={{ flex: 1, minWidth: '200px' }} 
-              value={newAdminEmail} 
-              onChange={e => setNewAdminEmail(e.target.value)} 
-            />
+            <input type="email" placeholder="Masukkan email Google untuk dijadikan Admin..." className="admin-input" style={{ flex: 1, minWidth: '200px' }} value={newAdminEmail} onChange={e => setNewAdminEmail(e.target.value)} />
             <button className="btn-modern btn-primary" onClick={handleAddAdminEmail}>Tambah Admin</button>
           </div>
-          
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
             {data.adminEmails.length === 0 ? (
-              <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Belum ada email admin terdaftar (selain yang sedang login).</span>
+              <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Belum ada email admin terdaftar.</span>
             ) : (
               data.adminEmails.map((email) => (
                 <span key={email} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'white', padding: '6px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.8rem', fontWeight: 600 }}>
@@ -205,9 +180,31 @@ export default function AdminPage() {
 
         <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0' }} />
 
+        {/* Kelola Email Promotor */}
+        <div>
+          <h3 style={{ fontWeight: 700, color: '#334155', marginBottom: '12px' }}>Kelola Akses Promotor (Email Google)</h3>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
+            <input type="email" placeholder="Masukkan email Google untuk dijadikan Promotor..." className="admin-input" style={{ flex: 1, minWidth: '200px' }} value={newPromotorEmail} onChange={e => setNewPromotorEmail(e.target.value)} />
+            <button className="btn-modern btn-primary" onClick={handleAddPromotorEmail}>Tambah Promotor</button>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            {data.promotorEmails.length === 0 ? (
+              <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Belum ada email promotor terdaftar.</span>
+            ) : (
+              data.promotorEmails.map((email) => (
+                <span key={email} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'white', padding: '6px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.8rem', fontWeight: 600 }}>
+                  {email}
+                  <button onClick={() => handleRemovePromotorEmail(email)} style={{ border: 'none', background: 'transparent', color: '#cbd5e1', fontWeight: 'bold', cursor: 'pointer' }}>✕</button>
+                </span>
+              ))
+            )}
+          </div>
+        </div>
+
+        <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0' }} />
+
         {/* Tambah Sales & Warna */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-          
           <div>
             <h3 style={{ fontWeight: 700, color: '#334155', marginBottom: '12px' }}>Tambah Sales</h3>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -230,7 +227,6 @@ export default function AdminPage() {
               <input type="color" style={{ width: '48px', height: '48px', padding: '4px', borderRadius: '8px', border: '1px solid #e2e8f0', cursor: 'pointer' }} value={colorValue} onChange={e => setColorValue(e.target.value)} />
               <button className="btn-modern btn-primary" onClick={handleSetColor}>Set</button>
             </div>
-            
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px' }}>
               {Object.entries(data.colors).map(([brand, color]) => (
                 <span key={brand} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'white', padding: '6px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.8rem', fontWeight: 600 }}>
@@ -252,9 +248,7 @@ export default function AdminPage() {
             <div style={{ display: 'flex', gap: '8px' }}>
               <select className="admin-input" style={{ flex: 1 }} value={deleteIdx} onChange={e => setDeleteIdx(e.target.value)}>
                 <option value="">Pilih sales</option>
-                {data.sales.map((s, i) => (
-                  <option key={s.id} value={i}>{s.brand} - {s.name}</option>
-                ))}
+                {data.sales.map((s, i) => (<option key={s.id} value={i}>{s.brand} - {s.name}</option>))}
               </select>
               <button className="btn-modern btn-danger" onClick={handleDeleteSales}>Hapus</button>
             </div>
@@ -317,17 +311,9 @@ export default function AdminPage() {
             )}
           </div>
         </div>
-
       </div>
 
-      <ConfirmModal
-        isOpen={confirmState.isOpen}
-        title={confirmState.title}
-        message={confirmState.message}
-        onConfirm={confirmState.action}
-        onCancel={closeConfirm}
-        isDanger={confirmState.isDanger}
-      />
+      <ConfirmModal isOpen={confirmState.isOpen} title={confirmState.title} message={confirmState.message} onConfirm={confirmState.action} onCancel={closeConfirm} isDanger={confirmState.isDanger} />
     </section>
   );
 }

@@ -2,14 +2,16 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAdmin } from '@/hooks/useAdmin';
+import { useData } from '@/hooks/useData';
 
 export default function LoginPage() {
-  const { user, login, loading } = useAdmin();
+  const { data } = useData();
+  const { user, login, loading, unauthorized } = useAdmin(data.adminEmails, data.promotorEmails);
   const router = useRouter();
 
   useEffect(() => {
     if (!loading && user) {
-      router.push('/shift'); // Jika sudah login, lempar ke halaman shift
+      router.push('/shift'); 
     }
   }, [user, loading, router]);
 
@@ -23,20 +25,22 @@ export default function LoginPage() {
 
   return (
     <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      alignItems: 'center', 
-      justifyContent: 'center', 
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #f0f4f9 0%, #f8fafc 100%)',
-      padding: '20px'
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', 
+      minHeight: '100vh', background: 'linear-gradient(135deg, #f0f4f9 0%, #f8fafc 100%)', padding: '20px'
     }}>
       <div className="card-glass" style={{ padding: '48px', borderRadius: '24px', maxWidth: '400px', width: '100%', textAlign: 'center' }}>
         <img src="/logo-ufo.png" alt="Logo" style={{ width: '150px', height: 'auto', margin: '0 auto 24px auto' }} />
         <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '8px' }}>Selamat Datang</h1>
-        <p style={{ color: '#64748b', marginBottom: '32px', fontSize: '0.95rem' }}>
-          Silakan login dengan akun Google Anda untuk mengakses jadwal.
-        </p>
+        
+        {unauthorized ? (
+          <p style={{ color: '#ef4444', marginBottom: '24px', fontSize: '0.95rem', fontWeight: 600 }}>
+            Maaf, email Anda belum terdaftar di sistem. Silakan hubungi Admin untuk didaftarkan.
+          </p>
+        ) : (
+          <p style={{ color: '#64748b', marginBottom: '32px', fontSize: '0.95rem' }}>
+            Silakan login dengan akun Google Anda untuk mengakses jadwal.
+          </p>
+        )}
         
         <button 
           onClick={login} 
