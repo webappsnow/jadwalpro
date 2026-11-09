@@ -6,7 +6,20 @@ import { useToast } from '@/hooks/useToast';
 import { HARI_ORDER, HARI_LABELS, TUGAS_OPTIONS } from '@/lib/constants';
 import { ConfirmModal } from '@/components/ConfirmModal';
 
-// Fungsi warna kontras
+// Fungsi untuk membuat warna cerah & gradien
+function getBrightStyle(hex: string) {
+  // Jika warna kosong, kembalikan default
+  if (!hex || hex.indexOf('#') !== 0) return { background: '#3b82f6', color: '#ffffff' };
+  
+  // Buat gradien dari warna asli ke warna yang lebih terang
+  return {
+    background: `linear-gradient(145deg, ${hex}, ${hex}dd)`,
+    color: '#ffffff', // Teks putih agar kontras
+    borderColor: hex
+  };
+}
+
+// Fungsi warna kontras (untuk teks jika diperlukan)
 function getContrastYIQ(hexcolor: string){
     if(!hexcolor || hexcolor.indexOf('#') !== 0) return '#ffffff';
     hexcolor = hexcolor.replace("#", "");
@@ -155,9 +168,19 @@ export default function HarianPage() {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
         {brands.map((b, bi) => {
           const baseColor = data.colors[b.toUpperCase()] || '#3b82f6';
-          const textColor = getContrastYIQ(baseColor);
+          const style = getBrightStyle(baseColor);
           return (
-            <span key={bi} className="brand-chip" style={{ background: baseColor, color: textColor, borderColor: baseColor, cursor: isAdmin ? 'pointer' : 'default' }} onClick={() => openMoveModal(day, area, tugas, bi)}>
+            <span 
+              key={bi} 
+              className="brand-chip" 
+              style={{ 
+                background: style.background, 
+                color: style.color, 
+                borderColor: style.borderColor,
+                cursor: isAdmin ? 'pointer' : 'default' 
+              }} 
+              onClick={() => openMoveModal(day, area, tugas, bi)}
+            >
               {b}
               {isAdmin && (<span onClick={(e) => removeBrand(day, area, tugas, bi, e)} style={{ marginLeft: '4px', opacity: 0.6, fontSize: '0.8rem' }}>✕</span>)}
             </span>
@@ -218,29 +241,11 @@ export default function HarianPage() {
                       return (
                         <tr key={`${area}-${tugas}`} className={i === 0 ? 'area-start' : ''} style={{ borderTop: i === 0 ? '2px solid #e2e8f0' : 'none' }}>
                           {i === 0 && (
-                            <td 
-                              className="area-cell" 
-                              rowSpan={tugasKeys.length} 
-                              style={{ 
-                                textAlign: 'center', 
-                                verticalAlign: 'middle', 
-                                fontWeight: 800, 
-                                color: '#0f172a', 
-                                background: '#f8fafc',
-                                borderRight: '1px solid #e2e8f0'
-                              }}
-                            >
+                            <td className="area-cell" rowSpan={tugasKeys.length} style={{ textAlign: 'center', verticalAlign: 'middle', fontWeight: 800, color: '#0f172a', background: '#f8fafc', borderRight: '1px solid #e2e8f0' }}>
                               {area}
                             </td>
                           )}
-                          <td className="tugas-cell" style={{ 
-                            whiteSpace: 'normal', 
-                            lineHeight: '1.4', 
-                            padding: '16px 12px',
-                            fontWeight: 600,
-                            color: '#334155',
-                            fontSize: '0.85rem'
-                          }}>
+                          <td className="tugas-cell" style={{ whiteSpace: 'normal', lineHeight: '1.4', padding: '16px 12px', fontWeight: 600, color: '#334155', fontSize: '0.85rem' }}>
                             {tugas}
                           </td>
                           <td style={{ padding: '16px 12px', textAlign: 'left', verticalAlign: 'middle' }}>
@@ -318,10 +323,11 @@ export default function HarianPage() {
             <p className="sub">Area: {addTarget.area} · Tugas: {addTarget.tugas}</p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', maxHeight: '240px', overflowY: 'auto', marginBottom: '16px' }}>
               {allBrands.map(b => {
-                const color = data.colors[b] || '#3b82f6';
+                const baseColor = data.colors[b] || '#3b82f6';
+                const style = getBrightStyle(baseColor);
                 const isExist = (localHarian[addTarget.day as keyof typeof localHarian]?.[addTarget.area]?.[addTarget.tugas] || []).includes(b);
                 return (
-                  <button key={b} onClick={() => handleAddBrand(b)} disabled={isExist} style={{ padding: '6px 14px', borderRadius: '20px', fontWeight: 700, fontSize: '0.8rem', background: isExist ? '#e2e8f0' : color, color: isExist ? '#94a3b8' : '#fff', border: 'none', cursor: isExist ? 'not-allowed' : 'pointer' }}>
+                  <button key={b} onClick={() => handleAddBrand(b)} disabled={isExist} style={{ padding: '6px 14px', borderRadius: '20px', fontWeight: 700, fontSize: '0.8rem', background: isExist ? '#e2e8f0' : style.background, color: isExist ? '#94a3b8' : style.color, border: 'none', cursor: isExist ? 'not-allowed' : 'pointer' }}>
                     {b} {isExist && '✓'}
                   </button>
                 );

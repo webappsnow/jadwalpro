@@ -92,7 +92,7 @@ html, body {
 .table-modern tr:hover td { background: rgba(219, 234, 254, 0.2); }
 .table-modern tbody tr.pair-divider td { border-bottom: 3px solid #1d4ed8 !important; position: relative; }
 
-/* ========== BADGE SHIFT ========== */
+/* ========== BADGE SHIFT (KAPSUL CERAH) ========== */
 .badge-shift {
     padding: 6px 12px; border-radius: 50px; font-weight: 800; font-size: 0.82rem;
     display: inline-flex; align-items: center; justify-content: center; min-width: 48px;
@@ -119,11 +119,11 @@ html, body {
 .day-cell .badge-shift { width: 100%; min-width: 0; padding: 4px 2px; font-size: 0.6rem; min-width: 24px; border-width: 1.5px; }
 .day-cell .badge-shift .badge-label { font-size: 0.7rem; }
 
-/* ========== BRAND CHIP (KAPSUL) ========== */
+/* ========== BRAND CHIP (KAPSUL CERAH) ========== */
 .brand-chip {
     display: inline-flex; align-items: center; justify-content: center; gap: 4px; 
     padding: 6px 12px; 
-    border-radius: 50px; /* INI KUNCI AGAR KAPSUL */
+    border-radius: 50px; /* KAPSUL */
     font-weight: 900; 
     font-size: 0.78rem; 
     letter-spacing: 0.5px; 
