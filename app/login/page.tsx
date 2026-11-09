@@ -6,7 +6,8 @@ import { useData } from '@/hooks/useData';
 
 export default function LoginPage() {
   const { data, loading: dataLoading } = useData();
-  const { user, login, loading: authLoading, unauthorized } = useAdmin(data.adminEmails, data.promotorEmails);
+  // Hanya kirim data.adminEmails
+  const { user, login, loading: authLoading } = useAdmin(data.adminEmails);
   const router = useRouter();
 
   const isLoading = dataLoading || authLoading;
@@ -27,21 +28,10 @@ export default function LoginPage() {
 
   return (
     <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      alignItems: 'center', 
-      justifyContent: 'center', 
-      minHeight: '100vh', 
-      background: 'linear-gradient(135deg, #f0f4f9 0%, #f8fafc 100%)', 
-      padding: '20px' 
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', 
+      minHeight: '100vh', background: 'linear-gradient(135deg, #f0f4f9 0%, #f8fafc 100%)', padding: '20px' 
     }}>
-      <div className="card-glass" style={{ 
-        padding: '40px 32px',
-        borderRadius: '24px', 
-        maxWidth: '400px', 
-        width: '100%', 
-        textAlign: 'center' 
-      }}>
+      <div className="card-glass" style={{ padding: '40px 32px', borderRadius: '24px', maxWidth: '400px', width: '100%', textAlign: 'center' }}>
         <img src="/logo-ufo.png" alt="Logo" style={{ width: '140px', height: 'auto', margin: '0 auto 16px auto' }} />
         
         <p style={{ fontSize: '0.8rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '8px' }}>
@@ -52,15 +42,9 @@ export default function LoginPage() {
           Selamat Datang
         </h1>
         
-        {unauthorized ? (
-          <p style={{ color: '#ef4444', marginBottom: '24px', fontSize: '0.9rem', fontWeight: 600, lineHeight: 1.5 }}>
-            Maaf, email Anda belum terdaftar. Silakan hubungi Admin.
-          </p>
-        ) : (
-          <p style={{ color: '#64748b', marginBottom: '32px', fontSize: '0.9rem', lineHeight: 1.5 }}>
-            Silakan login dengan akun Google Anda untuk mengakses jadwal.
-          </p>
-        )}
+        <p style={{ color: '#64748b', marginBottom: '32px', fontSize: '0.9rem', lineHeight: 1.5 }}>
+          Silakan login dengan akun Google Anda untuk mengakses jadwal.
+        </p>
         
         <button 
           onClick={login} 
