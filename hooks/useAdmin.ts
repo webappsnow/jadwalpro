@@ -11,6 +11,11 @@ export function useAdmin(adminEmails: string[] = [], promotorEmails: string[] = 
   const [unauthorized, setUnauthorized] = useState(false);
 
   useEffect(() => {
+    // JIKA data admin/promotor masih kosong, JANGAN lakukan pengecekan
+    if (adminEmails.length === 0 && promotorEmails.length === 0) {
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser && currentUser.email) {
         const allowed = checkIsAllowed(currentUser, adminEmails, promotorEmails);

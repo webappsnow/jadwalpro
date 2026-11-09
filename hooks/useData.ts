@@ -17,8 +17,7 @@ export function useData() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // LANGSUNG ambil data, jangan tunggu login.
-    // Biarkan Firebase Rules yang menjaga keamanan.
+    // LANGSUNG ambil dari Firebase (server)
     const unsub = onSnapshot(doc(db, 'config', 'ufo_data'), (snap) => {
       if (snap.exists()) {
         const d = snap.data();
@@ -35,7 +34,7 @@ export function useData() {
       }
       setLoading(false);
     }, (error) => {
-      console.warn("Gagal baca:", error);
+      console.warn("Gagal baca data:", error);
       setLoading(false);
     });
 
