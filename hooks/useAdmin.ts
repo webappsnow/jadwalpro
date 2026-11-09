@@ -12,7 +12,6 @@ export function useAdmin(adminEmails: string[] = []) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      // Hanya cek admin, tidak ada penendangan promotor
       setIsAdmin(checkIsAdmin(currentUser, adminEmails));
       setLoading(false);
     });

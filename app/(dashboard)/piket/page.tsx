@@ -11,18 +11,17 @@ function formatDate(dateStr: string) {
 
 export default function PiketPage() {
   const { data, saveData } = useData();
-  const { isAdmin } = useAdmin();
+  const { isAdmin } = useAdmin(data.adminEmails);
   const { show } = useToast();
   
   const [modalOpen, setModalOpen] = useState(false);
   const [editIdx, setEditIdx] = useState<number | null>(null);
   const [tgl1, setTgl1] = useState('');
   const [tgl2, setTgl2] = useState('');
-
   const [noteOpen, setNoteOpen] = useState(false);
 
   const openModal = (idx: number) => {
-    if (!isAdmin) { show('Silakan login admin dulu', true); return; }
+    if (!isAdmin) { show('Hanya Admin yang bisa mengubah jadwal', true); return; }
     setEditIdx(idx);
     setTgl1(data.sales[idx].toilet || '');
     setTgl2(data.sales[idx].toilet2 || '');
@@ -32,7 +31,7 @@ export default function PiketPage() {
   const closeModal = () => setModalOpen(false);
 
   const saveDate = async () => {
-    if (editIdx === null) return;
+    if (editIdx === null || !isAdmin) return;
     const newSales = [...data.sales];
     newSales[editIdx].toilet = tgl1;
     newSales[editIdx].toilet2 = tgl2;
@@ -43,7 +42,7 @@ export default function PiketPage() {
   };
 
   const clearDate = async () => {
-    if (editIdx === null) return;
+    if (editIdx === null || !isAdmin) return;
     if (!confirm('Kosongkan jadwal piket untuk sales ini?')) return;
     const newSales = [...data.sales];
     newSales[editIdx].toilet = '';
@@ -60,24 +59,13 @@ export default function PiketPage() {
         <p style={{ color: '#64748b', fontSize: '0.95rem', marginTop: '4px' }}>Atur jadwal kebersihan toilet untuk setiap promotor.</p>
       </div>
       
-      {/* Accordion Catatan Penting */}
       <div className="card-glass" style={{ marginBottom: '24px', borderLeft: '4px solid #f59e0b', background: '#fffbeb', overflow: 'hidden' }}>
-        <button 
-          onClick={() => setNoteOpen(!noteOpen)}
-          style={{ 
-            width: '100%', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left'
-          }}
-        >
+        <button onClick={() => setNoteOpen(!noteOpen)} style={{ width: '100%', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
           <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#b45309', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             Catatan Penting
           </h3>
-          <span style={{ fontSize: '0.8rem', color: '#b45309', fontWeight: 600 }}>
-            {noteOpen ? 'Tutup' : 'Buka'}
-          </span>
+          <span style={{ fontSize: '0.8rem', color: '#b45309', fontWeight: 600 }}>{noteOpen ? 'Tutup' : 'Buka'}</span>
         </button>
         
         {noteOpen && (
@@ -102,7 +90,6 @@ export default function PiketPage() {
         )}
       </div>
 
-      {/* Table Box */}
       <div className="card-glass" style={{ padding: '0px', overflow: 'hidden' }}>
         <div className="desktop-only">
           <table className="table-piket" style={{ width: '100%' }}>
@@ -120,7 +107,6 @@ export default function PiketPage() {
                 const t2 = formatDate(row.toilet2);
                 let displayText = 'Belum diatur';
                 let badgeClass = 'badge-toilet empty';
-                
                 if (t1 && t2) { displayText = `${t1} • ${t2}`; badgeClass = 'badge-toilet'; }
                 else if (t1 || t2) { displayText = t1 || t2; badgeClass = 'badge-toilet'; }
                 
@@ -134,22 +120,8 @@ export default function PiketPage() {
                     </td>
                     <td style={{ fontWeight: 500, color: '#475569', textAlign: 'center' }}>{row.name}</td>
                     <td style={{ textAlign: 'center' }}>
-                      <span 
-                        className={`${badgeClass} ${!isAdmin ? 'admin-locked' : ''}`}
-                        onClick={() => openModal(idx)}
-                        style={{ cursor: isAdmin ? 'pointer' : 'default' }}
-                      >
-                        {displayText === 'Belum diatur' ? (
-                          <span style={{ opacity: 0.6 }}>+ Pilih Tanggal</span>
-                        ) : (
-                          <>
-                            {/* Mengganti Emoji dengan SVG Kalender */}
-                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: '6px' }}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            {displayText}
-                          </>
-                        )}
+                      <span className={`${badgeClass} ${!isAdmin ? 'admin-locked' : ''}`} onClick={() => openModal(idx)} style={{ cursor: isAdmin ? 'pointer' : 'not-allowed' }}>
+                        {displayText === 'Belum diatur' ? (<span style={{ opacity: 0.6 }}>+ Pilih Tanggal</span>) : (<><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: '6px' }}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>{displayText}</>)}
                       </span>
                     </td>
                   </tr>
@@ -159,7 +131,6 @@ export default function PiketPage() {
           </table>
         </div>
 
-        {/* Mobile */}
         <div className="mobile-only" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {data.sales.map((row, idx) => {
             const color = data.colors[row.brand] || '#e2e8f0';
@@ -179,11 +150,7 @@ export default function PiketPage() {
                   </div>
                   <span style={{ fontSize: '0.85rem', color: '#64748b' }}>{row.name}</span>
                 </div>
-                <span 
-                  className={`${badgeClass} ${!isAdmin ? 'admin-locked' : ''}`} 
-                  onClick={() => openModal(idx)}
-                  style={{ cursor: isAdmin ? 'pointer' : 'default' }}
-                >
+                <span className={`${badgeClass} ${!isAdmin ? 'admin-locked' : ''}`} onClick={() => openModal(idx)} style={{ cursor: isAdmin ? 'pointer' : 'not-allowed' }}>
                   {displayText === 'Belum diatur' ? '+ Tanggal' : displayText}
                 </span>
               </div>
@@ -192,7 +159,6 @@ export default function PiketPage() {
         </div>
       </div>
 
-      {/* Modal Edit */}
       {modalOpen && editIdx !== null && (
         <div className="modal-overlay active" onClick={(e) => e.target === e.currentTarget && closeModal()}>
           <div className="modal-content">
