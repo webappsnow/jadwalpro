@@ -21,24 +21,6 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id">
-      <head>
-        {/* Script untuk menghapus IndexedDB Firebase secara paksa agar data lama hilang */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if (typeof window !== 'undefined' && window.indexedDB) {
-                window.indexedDB.databases().then((dbs) => {
-                  dbs.forEach((db) => {
-                    if (db.name && db.name.includes('firestore')) {
-                      window.indexedDB.deleteDatabase(db.name);
-                    }
-                  });
-                }).catch(() => {});
-              }
-            `,
-          }}
-        />
-      </head>
       <body className={jakarta.className}>{children}</body>
     </html>
   );

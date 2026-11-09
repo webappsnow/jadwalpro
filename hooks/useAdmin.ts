@@ -1,38 +1,32 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { checkIsAdmin, loginWithGoogle, logout } from '@/lib/auth';
 
 export function useAdmin() {
+  const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const refresh = useCallback(async () => {
-    try {
-      const res = await fetch('/api/auth', { cache: 'no-store' });
-      const data = await res.json();
-      setIsAdmin(!!data.isAdmin);
-    } catch {
-      setIsAdmin(false);
-    } finally {
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setIsAdmin(checkIsAdmin(currentUser));
       setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { refresh(); }, [refresh]);
-
-  const login = useCallback(async (pin: string): Promise<boolean> => {
-    const res = await fetch('/api/auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pin }),
     });
-    if (res.ok) { setIsAdmin(true); return true; }
-    return false;
+    return () => unsubscribe();
   }, []);
 
-  const logout = useCallback(async () => {
-    await fetch('/api/auth', { method: 'DELETE' });
+  const login = async () => {
+    await loginWithGoogle();
+  };
+
+  const signOutUser = async () => {
+    await logout();
+    setUser(null);
     setIsAdmin(false);
-  }, []);
+  };
 
-  return { isAdmin, loading, login, logout, refresh };
+  return { user, isAdmin, loading, login, logout: signOutUser };
 }

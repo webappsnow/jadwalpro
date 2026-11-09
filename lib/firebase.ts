@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth'; // Tambahkan ini
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -12,7 +13,4 @@ const firebaseConfig = {
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 export const db = getFirestore(app);
-
-// Catatan: enableIndexedDbPersistence SENGAJA DIHAPUS
-// agar Firebase selalu mengambil data segar dari server, 
-// mencegah data lama nyangkut di cache browser (offline mode).
+export const auth = getAuth(app); // Ekspor auth

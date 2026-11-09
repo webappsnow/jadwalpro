@@ -1,32 +1,34 @@
-import { SignJWT, jwtVerify } from 'jose';
-import { cookies } from 'next/headers';
+import { 
+  GoogleAuthProvider, 
+  signInWithPopup, 
+  signOut, 
+  onAuthStateChanged,
+  User 
+} from 'firebase/auth';
+import { auth } from './firebase'; // Pastikan auth diekspor dari firebase.ts
 
-const SECRET = new TextEncoder().encode(process.env.ADMIN_SESSION_SECRET || 'fallback-secret-ganti-di-env');
-const COOKIE_NAME = 'ufo_admin_session';
-const SESSION_DURATION = 60 * 60 * 8;
+// Daftar email Admin (Ganti dengan email Anda dan rekan admin)
+const ADMIN_EMAILS = [
+  'emailadmin1@gmail.com', 
+  'emailadmin2@gmail.com'
+];
 
-export async function verifyPin(pin: string): Promise<boolean> {
-  return pin === process.env.ADMIN_PIN;
-}
-
-export async function createSession(): Promise<string> {
-  return new SignJWT({ role: 'admin' })
-    .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt()
-    .setExpirationTime(`${SESSION_DURATION}s`)
-    .sign(SECRET);
-}
-
-export async function verifySession(): Promise<boolean> {
-   const token = (await cookies()).get(COOKIE_NAME)?.value;
-  if (!token) return false;
+export const loginWithGoogle = async () => {
+  const provider = new GoogleAuthProvider();
   try {
-    await jwtVerify(token, SECRET);
-    return true;
-  } catch {
-    return false;
+    const result = await signInWithPopup(auth, provider);
+    return result.user;
+  } catch (error) {
+    console.error("Login gagal:", error);
+    throw error;
   }
-}
+};
 
-export const SESSION_COOKIE = COOKIE_NAME;
-export const SESSION_MAX_AGE = SESSION_DURATION;
+export const logout = async () => {
+  await signOut(auth);
+};
+
+export const checkIsAdmin = (user: User | null) => {
+  if (!user || !user.email) return false;
+  return ADMIN_EMAILS.includes(user.email.toLowerCase());
+};

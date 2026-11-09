@@ -48,7 +48,7 @@ export default function AdminPage() {
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
         </svg>
         <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '8px' }}>Akses Ditolak</h2>
-        <p style={{ fontSize: '0.95rem' }}>Silakan klik tombol <strong>"Login"</strong> di pojok kiri bawah untuk masuk sebagai Admin.</p>
+        <p style={{ fontSize: '0.95rem' }}>Halaman ini hanya dapat diakses oleh Admin.</p>
       </div>
     );
   }
@@ -176,7 +176,7 @@ export default function AdminPage() {
 
         <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0' }} />
 
-        {/* Baris 2: Hapus Sales & Reset */}
+        {/* Baris 2: Hapus Sales & Kosongkan */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
           <div>
             <h3 style={{ fontWeight: 700, color: '#334155', marginBottom: '8px', fontSize: '0.9rem' }}>Hapus Sales</h3>
@@ -192,38 +192,28 @@ export default function AdminPage() {
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-end' }}>
             <button className="btn-modern btn-outline" style={{ width: '100%' }} onClick={() => {
-              openConfirm(
-                'Kosongkan Shift',
-                'Kosongkan semua data shift & sales?',
-                async () => {
-                  const ok = await saveData({ sales: [] });
-                  if (ok) show('Data shift dikosongkan');
-                  closeConfirm();
-                },
-                true
-              );
+              openConfirm('Kosongkan Shift', 'Kosongkan semua data shift & sales?', async () => {
+                const ok = await saveData({ sales: [] });
+                if (ok) show('Data shift dikosongkan');
+                closeConfirm();
+              }, true);
             }}>Kosongkan Shift</button>
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-end' }}>
             <button className="btn-modern btn-outline" style={{ width: '100%' }} onClick={() => {
-              openConfirm(
-                'Kosongkan Piket Harian',
-                'Kosongkan semua jadwal piket harian? (Area tetap ada, brand akan dihapus semua).',
-                async () => {
-                  const emptyHarian: any = {};
-                  ['senin','selasa','rabu','kamis','jumat','sabtu','minggu'].forEach(day => {
-                    emptyHarian[day] = {
-                      'LANTAI 1': { 'MENYAPU': [], 'MENGEPEL': [], 'CLEAN BRAND NON PROMOTOR + TANGGA': [], 'GENERAL CLEANING (SETELAH PIKET)': [] },
-                      'LANTAI 2/AV': { 'MENYAPU': [], 'MENGEPEL': [], 'CLEAN BRAND NON PROMOTOR + TANGGA': [], 'GENERAL CLEANING (SETELAH PIKET)': [] },
-                      'FREEZER': { 'MENYAPU': [], 'MENGEPEL': [], 'GENERAL CLEANING (SETELAH PIKET)': [] }
-                    };
-                  });
-                  const ok = await saveData({ harian: emptyHarian });
-                  if (ok) show('Piket harian dikosongkan');
-                  closeConfirm();
-                },
-                true
-              );
+              openConfirm('Kosongkan Piket Harian', 'Kosongkan semua jadwal piket harian? (Area tetap ada, brand akan dihapus semua).', async () => {
+                const emptyHarian: any = {};
+                ['senin','selasa','rabu','kamis','jumat','sabtu','minggu'].forEach(day => {
+                  emptyHarian[day] = {
+                    'LANTAI 1': { 'MENYAPU': [], 'MENGEPEL': [], 'CLEAN BRAND NON PROMOTOR + TANGGA': [], 'GENERAL CLEANING (SETELAH PIKET)': [] },
+                    'LANTAI 2/AV': { 'MENYAPU': [], 'MENGEPEL': [], 'CLEAN BRAND NON PROMOTOR + TANGGA': [], 'GENERAL CLEANING (SETELAH PIKET)': [] },
+                    'FREEZER': { 'MENYAPU': [], 'MENGEPEL': [], 'GENERAL CLEANING (SETELAH PIKET)': [] }
+                  };
+                });
+                const ok = await saveData({ harian: emptyHarian });
+                if (ok) show('Piket harian dikosongkan');
+                closeConfirm();
+              }, true);
             }}>Kosongkan Piket Harian</button>
           </div>
         </div>
@@ -244,18 +234,13 @@ export default function AdminPage() {
                     <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: color, border: '1px solid white' }}></span>
                     {item.brand} - {item.name}
                     <button onClick={() => {
-                      openConfirm(
-                        'Hapus Sales',
-                        `Hapus ${item.brand} - ${item.name}?`,
-                        async () => {
-                          const newSales = [...data.sales];
-                          newSales.splice(idx, 1);
-                          await saveData({ sales: newSales });
-                          show('Sales dihapus');
-                          closeConfirm();
-                        },
-                        true
-                      );
+                      openConfirm('Hapus Sales', `Hapus ${item.brand} - ${item.name}?`, async () => {
+                        const newSales = [...data.sales];
+                        newSales.splice(idx, 1);
+                        await saveData({ sales: newSales });
+                        show('Sales dihapus');
+                        closeConfirm();
+                      }, true);
                     }} style={{ border: 'none', background: 'transparent', color: '#cbd5e1', fontWeight: 'bold', cursor: 'pointer', marginLeft: '4px' }}>✕</button>
                   </span>
                 );
