@@ -9,7 +9,8 @@ import {
   DndContext,
   closestCenter,
   KeyboardSensor,
-  PointerSensor,
+  TouchSensor,
+  MouseSensor,
   useSensor,
   useSensors,
   DragEndEvent
@@ -64,10 +65,18 @@ function SortableRow({ row, idx, isAdmin, updateShift, data }: any) {
   );
 }
 
-// Komponen Kartu (Mobile)
+// Komponen Kartu (Mobile) dengan Touch Sensor
 function SortableCard({ row, idx, isAdmin, updateShift, data }: any) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: row.id });
-  const style = { transform: CSS.Transform.toString(transform), transition, zIndex: isDragging ? 1 : 0, position: 'relative' as const, background: isDragging ? '#f8fafc' : 'white' };
+  const style = { 
+    transform: CSS.Transform.toString(transform), 
+    transition, 
+    zIndex: isDragging ? 1 : 0, 
+    position: 'relative' as const, 
+    background: isDragging ? '#f8fafc' : 'white',
+    opacity: isDragging ? 0.8 : 1,
+    boxShadow: isDragging ? '0 10px 30px rgba(0,0,0,0.2)' : ''
+  };
   const color = data.colors[row.brand] || '#e2e8f0';
   const isPairEnd = (idx % 2 === 1) && (idx < data.sales.length - 1);
   const dividerClass = isPairEnd ? 'pair-divider-mobile' : '';
@@ -76,7 +85,23 @@ function SortableCard({ row, idx, isAdmin, updateShift, data }: any) {
     <div ref={setNodeRef} style={style} className={`shift-card ${dividerClass}`}>
       <div className="shift-card-header">
         <div className="shift-card-title-wrap">
-          <span className="drag-handle-mobile" style={{ cursor: isAdmin ? 'grab' : 'default', marginRight: '4px', opacity: isAdmin ? 1 : 0.3 }} {...(isAdmin ? attributes : {})} {...(isAdmin ? listeners : {})}>⠿</span>
+          {/* Handle Drag */}
+          <span 
+            style={{ 
+              cursor: isAdmin ? 'grab' : 'default', 
+              marginRight: '8px', 
+              fontSize: '1.2rem',
+              padding: '4px 8px',
+              backgroundColor: '#f1f5f9',
+              borderRadius: '6px',
+              color: '#64748b',
+              touchAction: 'none' // KUNCI: Mencegah scroll saat drag
+            }} 
+            {...(isAdmin ? attributes : {})} 
+            {...(isAdmin ? listeners : {})}
+          >
+            ⠿
+          </span>
           <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: color }}></span>
           <span className="shift-card-title">{row.brand}</span>
           <span className="shift-card-name">{row.name}</span>
@@ -112,8 +137,17 @@ export default function ShiftPage() {
     setIsMounted(true);
   }, [data.sales]);
 
+  // SENSOR BARU: TouchSensor untuk HP, MouseSensor untuk Desktop
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { 
+      activationConstraint: { 
+        delay: 150, // Tahan 150ms baru bisa digeser
+        tolerance: 5 // Toleransi gerakan
+      } 
+    }),
+    useSensor(MouseSensor, { 
+      activationConstraint: { distance: 5 } 
+    }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
