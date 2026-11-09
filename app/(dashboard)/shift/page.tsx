@@ -87,7 +87,7 @@ function SortableRow({ row, idx, isAdmin, updateShift, data }: any) {
 
 export default function ShiftPage() {
   const { data, saveData } = useData();
- const { isAdmin } = useAdmin(data.adminEmails);
+  const { isAdmin } = useAdmin(data.adminEmails);
   const { show } = useToast();
   
   const [sales, setSales] = useState(data.sales);
