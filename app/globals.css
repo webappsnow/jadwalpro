@@ -181,3 +181,97 @@ html, body {
     h2 { font-size: 1.2rem !important; }
     .modal-content { padding: 24px; }
 }
+/* ========== KARTU SHIFT (HP) ========== */
+.shift-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 12px 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+}
+
+/* Garis pemisah antar pasangan promotor */
+.shift-card.pair-divider-mobile {
+    margin-bottom: 26px;
+    position: relative;
+}
+.shift-card.pair-divider-mobile::after {
+    content: '';
+    position: absolute;
+    left: 6px;
+    right: 6px;
+    bottom: -14px;
+    border-bottom: 3px solid #1d4ed8;
+    border-radius: 2px;
+}
+
+.shift-card-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+.shift-card-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    width: 100%;
+}
+.shift-card-title {
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: #0f172a;
+    white-space: nowrap;
+}
+.shift-card-name {
+    min-width: 0;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #64748b;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Semua hari sejajar satu baris, lebar kolom sama rata */
+.day-grid {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 4px;
+}
+.day-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+}
+.day-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #94a3b8;
+    letter-spacing: 0.02em;
+}
+
+/* Badge versi kecil: menimpa min-width 48px dan padding dari .badge-shift */
+.day-cell .badge-shift {
+    width: 100%;
+    max-width: 42px;
+    min-width: 0;
+    height: 34px;
+    padding: 0;
+    border-width: 1.5px;
+    font-size: 0.75rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+.day-cell .badge-shift:hover { transform: none; }
+.day-cell .badge-empty { min-width: 0; font-size: 0.7rem; }
+.day-cell .badge-label { line-height: 1; }
+
+@media (max-width: 768px) {
+    /* Kurangi ruang kosong di sekitar kartu supaya 7 hari muat */
+    .mobile-only { padding: 12px !important; }
+}
