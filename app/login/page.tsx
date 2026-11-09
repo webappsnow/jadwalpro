@@ -53,7 +53,7 @@ export default function LoginPage() {
           letterSpacing: '2px', 
           marginBottom: '8px' 
         }}>
-          Jadwal Promotor UFO Kebonsari
+          UFO Kebonsari
         </p>
 
         <h1 style={{ 
