@@ -6,10 +6,20 @@ import { useToast } from '@/hooks/useToast';
 import { SHIFT_ORDER, HARI_ORDER, HARI_LABELS } from '@/lib/constants';
 import type { ShiftCode } from '@/lib/types';
 import {
-  DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent
 } from '@dnd-kit/core';
 import {
-  arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
@@ -23,7 +33,15 @@ function shiftClass(val: string) {
 }
 
 function SortableRow({ row, idx, isAdmin, updateShift, data }: any) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: row.id });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id: row.id });
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -31,11 +49,16 @@ function SortableRow({ row, idx, isAdmin, updateShift, data }: any) {
     position: 'relative' as const,
     background: isDragging ? '#f8fafc' : 'transparent',
   };
+
   const color = data.colors[row.brand] || '#e2e8f0';
 
   return (
     <tr ref={setNodeRef} style={style} className={idx % 2 === 1 ? 'pair-divider' : ''}>
-      <td style={{ textAlign: 'center', color: '#94a3b8', fontWeight: 600, cursor: isAdmin ? 'grab' : 'default' }} {...(isAdmin ? attributes : {})} {...(isAdmin ? listeners : {})}>
+      <td 
+        style={{ textAlign: 'center', color: '#94a3b8', fontWeight: 600, cursor: isAdmin ? 'grab' : 'default' }} 
+        {...(isAdmin ? attributes : {})} 
+        {...(isAdmin ? listeners : {})}
+      >
         {isAdmin ? '⠿' : idx + 1}
       </td>
       <td>
@@ -52,7 +75,6 @@ function SortableRow({ row, idx, isAdmin, updateShift, data }: any) {
             <span 
               className={`badge-shift ${shiftClass(val)} ${!isAdmin ? 'admin-locked' : ''}`}
               onClick={() => updateShift(idx, day, val)}
-              style={{ cursor: isAdmin ? 'pointer' : 'not-allowed' }}
             >
               {val || '-'}
             </span>
@@ -65,7 +87,7 @@ function SortableRow({ row, idx, isAdmin, updateShift, data }: any) {
 
 export default function ShiftPage() {
   const { data, saveData } = useData();
-  const { isAdmin } = useAdmin(data.adminEmails);
+  const { isAdmin } = useAdmin(data.adminEmails, data.promotorEmails);
   const { show } = useToast();
   
   const [sales, setSales] = useState(data.sales);
@@ -100,6 +122,7 @@ export default function ShiftPage() {
 
     const oldIndex = sales.findIndex((s: any) => s.id === active.id);
     const newIndex = sales.findIndex((s: any) => s.id === over.id);
+
     const newSales = arrayMove(sales, oldIndex, newIndex);
     setSales(newSales);
     
@@ -131,7 +154,14 @@ export default function ShiftPage() {
                 <tbody>
                   <SortableContext items={sales.map((s: any) => s.id)} strategy={verticalListSortingStrategy}>
                     {sales.map((row: any, idx: number) => (
-                      <SortableRow key={row.id} row={row} idx={idx} isAdmin={isAdmin} updateShift={updateShift} data={data} />
+                      <SortableRow 
+                        key={row.id} 
+                        row={row} 
+                        idx={idx} 
+                        isAdmin={isAdmin} 
+                        updateShift={updateShift} 
+                        data={data} 
+                      />
                     ))}
                   </SortableContext>
                 </tbody>
@@ -142,16 +172,18 @@ export default function ShiftPage() {
           )}
         </div>
 
+        {/* Mobile View (Kartu Lama) */}
         <div className="mobile-only" style={{ padding: '16px' }}>
           {data.sales.map((row, idx) => {
             const color = data.colors[row.brand] || '#e2e8f0';
             const isPairEnd = (idx % 2 === 1) && (idx < data.sales.length - 1);
             const dividerClass = isPairEnd ? 'pair-divider-mobile' : '';
+
             return (
               <div key={row.id} className={`shift-card ${dividerClass}`}>
                 <div className="shift-card-header">
                   <div className="shift-card-title-wrap">
-                    <span className="brand-color-dot" style={{ width: '10px', height: '10px', borderRadius: '50%', background: color }}></span>
+                    <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: color }}></span>
                     <span className="shift-card-title">{row.brand}</span>
                     <span className="shift-card-name">{row.name}</span>
                   </div>
@@ -162,7 +194,10 @@ export default function ShiftPage() {
                     return (
                       <div key={day} className="day-cell">
                         <span className="day-label">{HARI_LABELS[day].substring(0,3)}</span>
-                        <span className={`badge-shift ${shiftClass(val)} ${!isAdmin ? 'admin-locked' : ''}`} onClick={() => updateShift(idx, day, val)}>
+                        <span 
+                          className={`badge-shift ${shiftClass(val)} ${!isAdmin ? 'admin-locked' : ''}`}
+                          onClick={() => updateShift(idx, day, val)}
+                        >
                           <span className="badge-label">{val || '-'}</span>
                         </span>
                       </div>
