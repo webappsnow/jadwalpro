@@ -12,20 +12,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { user, isAdmin, loading: authLoading, logout } = useAdmin(data.adminEmails, data.promotorEmails);
   const router = useRouter();
 
-  const isLoading = dataLoading || authLoading;
-
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (!authLoading && !user) {
       router.push('/login');
     }
-  }, [user, isLoading, router]);
+  }, [user, authLoading, router]);
 
-  if (isLoading) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f8fafc', color: '#64748b' }}>
-        Memuat aplikasi...
-      </div>
-    );
+  if (dataLoading || authLoading) {
+    return <div style={{ padding: '40px', textAlign: 'center' }}>Memuat...</div>;
   }
 
   if (!user) return null;

@@ -1,8 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { db, auth } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth';
 import type { AppData } from '@/lib/types';
 import { DEFAULT_HARIAN } from '@/lib/constants';
 
@@ -18,41 +17,29 @@ export function useData() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let unsubSnapshot: (() => void) | null = null;
-
-    const unsubAuth = onAuthStateChanged(auth, (user) => {
-      if (unsubSnapshot) { unsubSnapshot(); unsubSnapshot = null; }
-
-      if (user) {
-        unsubSnapshot = onSnapshot(doc(db, 'config', 'ufo_data'), (snap) => {
-          if (snap.exists()) {
-            const d = snap.data();
-            setData({
-              sales: (d.sales || []).map((s: any, i: number) => ({
-                ...s,
-                id: s.id || `sales-${i}-${Date.now()}`,
-              })),
-              colors: d.colors || {},
-              harian: d.harian || DEFAULT_HARIAN,
-              adminEmails: d.adminEmails || [],
-              promotorEmails: d.promotorEmails || [],
-            });
-          }
-          setLoading(false);
-        }, (error) => {
-          console.warn("Gagal baca data:", error);
-          setLoading(false);
+    // LANGSUNG ambil data, jangan tunggu login.
+    // Biarkan Firebase Rules yang menjaga keamanan.
+    const unsub = onSnapshot(doc(db, 'config', 'ufo_data'), (snap) => {
+      if (snap.exists()) {
+        const d = snap.data();
+        setData({
+          sales: (d.sales || []).map((s: any, i: number) => ({
+            ...s,
+            id: s.id || `sales-${i}-${Date.now()}`,
+          })),
+          colors: d.colors || {},
+          harian: d.harian || DEFAULT_HARIAN,
+          adminEmails: d.adminEmails || [],
+          promotorEmails: d.promotorEmails || [],
         });
-      } else {
-        setData({ sales: [], colors: {}, harian: DEFAULT_HARIAN, adminEmails: [], promotorEmails: [] });
-        setLoading(false);
       }
+      setLoading(false);
+    }, (error) => {
+      console.warn("Gagal baca:", error);
+      setLoading(false);
     });
 
-    return () => {
-      if (unsubSnapshot) unsubSnapshot();
-      unsubAuth();
-    };
+    return () => unsub();
   }, []);
 
   const saveData = useCallback(async (newData: Partial<AppData>) => {

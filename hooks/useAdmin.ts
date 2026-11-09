@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { onAuthStateChanged, User, signOut } from 'firebase/auth';
+import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { checkIsAdmin, checkIsAllowed, loginWithGoogle, logout } from '@/lib/auth';
 
@@ -8,32 +8,20 @@ export function useAdmin(adminEmails: string[] = [], promotorEmails: string[] = 
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [unauthorized, setUnauthorized] = useState(false);
 
   useEffect(() => {
-    // TUNGGU sampai data admin/promotor selesai dimuat dari Firebase
-    if (adminEmails.length === 0 && promotorEmails.length === 0) {
-      return;
-    }
-
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser && currentUser.email) {
-        const isAllowed = checkIsAllowed(currentUser, adminEmails, promotorEmails);
-        
-        if (!isAllowed) {
-          await signOut(auth);
-          setUser(null);
-          setIsAdmin(false);
-          setUnauthorized(true);
-        } else {
-          setUser(currentUser);
-          setIsAdmin(checkIsAdmin(currentUser, adminEmails));
-          setUnauthorized(false);
-        }
-      } else {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      // Cek apakah email ada di admin atau promotor
+      const allowed = checkIsAllowed(currentUser, adminEmails, promotorEmails);
+      const admin = checkIsAdmin(currentUser, adminEmails);
+      
+      if (currentUser && !allowed) {
+        // Jika login tapi tidak terdaftar, jangan set user (biarkan login page yang handle)
         setUser(null);
         setIsAdmin(false);
-        setUnauthorized(false);
+      } else {
+        setIsAdmin(admin);
       }
       setLoading(false);
     });
@@ -41,12 +29,7 @@ export function useAdmin(adminEmails: string[] = [], promotorEmails: string[] = 
   }, [adminEmails, promotorEmails]);
 
   const login = async () => {
-    try {
-      setUnauthorized(false);
-      await loginWithGoogle();
-    } catch (error) {
-      console.error(error);
-    }
+    await loginWithGoogle();
   };
 
   const signOutUser = async () => {
@@ -55,5 +38,5 @@ export function useAdmin(adminEmails: string[] = [], promotorEmails: string[] = 
     setIsAdmin(false);
   };
 
-  return { user, isAdmin, loading, login, logout: signOutUser, unauthorized };
+  return { user, isAdmin, loading, login, logout: signOutUser };
 }
