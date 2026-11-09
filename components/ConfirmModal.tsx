@@ -18,8 +18,21 @@ export function ConfirmModal({
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay active" onClick={(e) => e.target === e.currentTarget && onCancel()}>
-      <div className="modal-content" style={{ maxWidth: '380px', textAlign: 'center' }}>
+    <div 
+      style={{
+        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+        backgroundColor: 'rgba(15, 23, 42, 0.6)',
+        backdropFilter: 'blur(4px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        zIndex: 9999
+      }}
+      onClick={(e) => e.target === e.currentTarget && onCancel()}
+    >
+      <div style={{
+        background: 'white', borderRadius: '20px', padding: '32px',
+        maxWidth: '380px', width: '90%', textAlign: 'center',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+      }}>
         <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'center' }}>
           <div style={{ 
             width: '48px', height: '48px', borderRadius: '50%', 
