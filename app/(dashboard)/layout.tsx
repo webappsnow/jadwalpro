@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sidebar } from '@/components/Sidebar';
@@ -33,7 +33,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="layout-wrapper">
         <Sidebar isAdmin={isAdmin} user={user} onLogout={logout} />
         
-        <main className={`main-content ${!isAdmin ? 'admin-locked' : ''}`}>
+        <main className={main-content }>
           {children}
         </main>
         
