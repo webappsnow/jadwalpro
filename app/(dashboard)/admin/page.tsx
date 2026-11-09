@@ -22,6 +22,7 @@ export default function AdminPage() {
 
   const [deleteIdx, setDeleteIdx] = useState('');
 
+  // State untuk Modal Konfirmasi
   const [confirmState, setConfirmState] = useState<{
     isOpen: boolean;
     title: string;
@@ -61,11 +62,18 @@ export default function AdminPage() {
   };
 
   const handleRemoveAdminEmail = (email: string) => {
-    openConfirm('Hapus Admin', `Hapus akses admin untuk ${email}?`, async () => {
-      await saveData({ adminEmails: data.adminEmails.filter(e => e !== email) });
-      show('Admin dihapus');
-      closeConfirm();
-    }, true);
+    // Memanggil modal konfirmasi
+    openConfirm(
+      'Hapus Admin', 
+      `Hapus akses admin untuk ${email}?`, 
+      async () => {
+        const newEmails = data.adminEmails.filter(e => e !== email);
+        const ok = await saveData({ adminEmails: newEmails });
+        if (ok) show('Admin dihapus');
+        closeConfirm();
+      }, 
+      true
+    );
   };
 
   // --- FUNGSI KELOLA PROMOTOR ---
@@ -80,11 +88,18 @@ export default function AdminPage() {
   };
 
   const handleRemovePromotorEmail = (email: string) => {
-    openConfirm('Hapus Promotor', `Hapus akses promotor untuk ${email}?`, async () => {
-      await saveData({ promotorEmails: data.promotorEmails.filter(e => e !== email) });
-      show('Promotor dihapus');
-      closeConfirm();
-    }, true);
+    // Memanggil modal konfirmasi
+    openConfirm(
+      'Hapus Promotor', 
+      `Hapus akses promotor untuk ${email}?`, 
+      async () => {
+        const newEmails = data.promotorEmails.filter(e => e !== email);
+        const ok = await saveData({ promotorEmails: newEmails });
+        if (ok) show('Promotor dihapus');
+        closeConfirm();
+      }, 
+      true
+    );
   };
 
   const handleAddSales = async () => {
@@ -159,8 +174,12 @@ export default function AdminPage() {
             {data.adminEmails.map((email) => (
               <span key={email} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'white', padding: '6px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.8rem', fontWeight: 600 }}>
                 {email}
-                {/* TOMBOL HAPUS ADMIN */}
-                <button onClick={() => handleRemoveAdminEmail(email)} style={{ border: 'none', background: 'transparent', color: '#cbd5e1', fontWeight: 'bold', cursor: 'pointer' }}>✕</button>
+                <button 
+                  onClick={() => handleRemoveAdminEmail(email)} 
+                  style={{ border: 'none', background: 'transparent', color: '#ef4444', fontWeight: 'bold', cursor: 'pointer', fontSize: '1rem' }}
+                >
+                  ✕
+                </button>
               </span>
             ))}
           </div>
@@ -179,8 +198,12 @@ export default function AdminPage() {
             {data.promotorEmails.map((email) => (
               <span key={email} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'white', padding: '6px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.8rem', fontWeight: 600 }}>
                 {email}
-                {/* TOMBOL HAPUS PROMOTOR */}
-                <button onClick={() => handleRemovePromotorEmail(email)} style={{ border: 'none', background: 'transparent', color: '#cbd5e1', fontWeight: 'bold', cursor: 'pointer' }}>✕</button>
+                <button 
+                  onClick={() => handleRemovePromotorEmail(email)} 
+                  style={{ border: 'none', background: 'transparent', color: '#ef4444', fontWeight: 'bold', cursor: 'pointer', fontSize: '1rem' }}
+                >
+                  ✕
+                </button>
               </span>
             ))}
           </div>
@@ -294,7 +317,14 @@ export default function AdminPage() {
         </div>
       </div>
 
-      <ConfirmModal isOpen={confirmState.isOpen} title={confirmState.title} message={confirmState.message} onConfirm={confirmState.action} onCancel={closeConfirm} isDanger={confirmState.isDanger} />
+      <ConfirmModal 
+        isOpen={confirmState.isOpen} 
+        title={confirmState.title} 
+        message={confirmState.message} 
+        onConfirm={confirmState.action} 
+        onCancel={closeConfirm} 
+        isDanger={confirmState.isDanger} 
+      />
     </section>
   );
 }
