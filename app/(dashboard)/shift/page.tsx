@@ -32,33 +32,15 @@ function shiftClass(val: string) {
   return 'badge-empty';
 }
 
+// Komponen Baris Tabel (Desktop)
 function SortableRow({ row, idx, isAdmin, updateShift, data }: any) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging
-  } = useSortable({ id: row.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    zIndex: isDragging ? 1 : 0,
-    position: 'relative' as const,
-    background: isDragging ? '#f8fafc' : 'transparent',
-  };
-
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: row.id });
+  const style = { transform: CSS.Transform.toString(transform), transition, zIndex: isDragging ? 1 : 0, position: 'relative' as const, background: isDragging ? '#f8fafc' : 'transparent' };
   const color = data.colors[row.brand] || '#e2e8f0';
 
   return (
     <tr ref={setNodeRef} style={style} className={idx % 2 === 1 ? 'pair-divider' : ''}>
-      <td 
-        style={{ textAlign: 'center', color: '#94a3b8', fontWeight: 600, cursor: isAdmin ? 'grab' : 'default' }} 
-        {...(isAdmin ? attributes : {})} 
-        {...(isAdmin ? listeners : {})}
-      >
+      <td style={{ textAlign: 'center', color: '#94a3b8', fontWeight: 600, cursor: isAdmin ? 'grab' : 'default' }} {...(isAdmin ? attributes : {})} {...(isAdmin ? listeners : {})}>
         {isAdmin ? '⠿' : idx + 1}
       </td>
       <td>
@@ -72,16 +54,48 @@ function SortableRow({ row, idx, isAdmin, updateShift, data }: any) {
         const val = row[day as keyof typeof row] as string || '';
         return (
           <td key={day} style={{ textAlign: 'center' }}>
-            <span 
-              className={`badge-shift ${shiftClass(val)} ${!isAdmin ? 'admin-locked' : ''}`}
-              onClick={() => updateShift(idx, day, val)}
-            >
+            <span className={`badge-shift ${shiftClass(val)} ${!isAdmin ? 'admin-locked' : ''}`} onClick={() => updateShift(idx, day, val)}>
               {val || '-'}
             </span>
           </td>
         );
       })}
     </tr>
+  );
+}
+
+// Komponen Kartu (Mobile)
+function SortableCard({ row, idx, isAdmin, updateShift, data }: any) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: row.id });
+  const style = { transform: CSS.Transform.toString(transform), transition, zIndex: isDragging ? 1 : 0, position: 'relative' as const, background: isDragging ? '#f8fafc' : 'white' };
+  const color = data.colors[row.brand] || '#e2e8f0';
+  const isPairEnd = (idx % 2 === 1) && (idx < data.sales.length - 1);
+  const dividerClass = isPairEnd ? 'pair-divider-mobile' : '';
+
+  return (
+    <div ref={setNodeRef} style={style} className={`shift-card ${dividerClass}`}>
+      <div className="shift-card-header">
+        <div className="shift-card-title-wrap">
+          <span className="drag-handle-mobile" style={{ cursor: isAdmin ? 'grab' : 'default', marginRight: '4px', opacity: isAdmin ? 1 : 0.3 }} {...(isAdmin ? attributes : {})} {...(isAdmin ? listeners : {})}>⠿</span>
+          <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: color }}></span>
+          <span className="shift-card-title">{row.brand}</span>
+          <span className="shift-card-name">{row.name}</span>
+        </div>
+      </div>
+      <div className="day-grid">
+        {HARI_ORDER.map(day => {
+          const val = row[day as keyof typeof row] as string || '';
+          return (
+            <div key={day} className="day-cell">
+              <span className="day-label">{HARI_LABELS[day].substring(0,3)}</span>
+              <span className={`badge-shift ${shiftClass(val)} ${!isAdmin ? 'admin-locked' : ''}`} onClick={() => updateShift(idx, day, val)}>
+                <span className="badge-label">{val || '-'}</span>
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -105,11 +119,9 @@ export default function ShiftPage() {
 
   const updateShift = async (idx: number, day: string, current: string) => {
     if (!isAdmin) { show('Hanya Admin yang bisa mengubah shift', true); return; }
-    
     const safeCurrent = (current || '') as ShiftCode;
     const curIdx = SHIFT_ORDER.indexOf(safeCurrent as any);
     const next = SHIFT_ORDER[(curIdx + 1) % SHIFT_ORDER.length];
-    
     const newSales = data.sales.map((s, i) => i === idx ? { ...s, [day]: next as ShiftCode } : s);
     const ok = await saveData({ sales: newSales });
     if (ok) show('Shift diubah');
@@ -119,13 +131,10 @@ export default function ShiftPage() {
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     if (!isAdmin || !over || active.id === over.id) return;
-
     const oldIndex = sales.findIndex((s: any) => s.id === active.id);
     const newIndex = sales.findIndex((s: any) => s.id === over.id);
-
     const newSales = arrayMove(sales, oldIndex, newIndex);
     setSales(newSales);
-    
     const ok = await saveData({ sales: newSales });
     if (ok) show('Urutan disimpan');
     else show('Gagal menyimpan urutan', true);
@@ -139,6 +148,7 @@ export default function ShiftPage() {
       </div>
       
       <div className="card-glass" style={{ padding: '0px', overflow: 'hidden' }}>
+        {/* Desktop View */}
         <div className="desktop-only">
           {isMounted ? (
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -154,14 +164,7 @@ export default function ShiftPage() {
                 <tbody>
                   <SortableContext items={sales.map((s: any) => s.id)} strategy={verticalListSortingStrategy}>
                     {sales.map((row: any, idx: number) => (
-                      <SortableRow 
-                        key={row.id} 
-                        row={row} 
-                        idx={idx} 
-                        isAdmin={isAdmin} 
-                        updateShift={updateShift} 
-                        data={data} 
-                      />
+                      <SortableRow key={row.id} row={row} idx={idx} isAdmin={isAdmin} updateShift={updateShift} data={data} />
                     ))}
                   </SortableContext>
                 </tbody>
@@ -172,40 +175,19 @@ export default function ShiftPage() {
           )}
         </div>
 
+        {/* Mobile View (Dengan Drag) */}
         <div className="mobile-only" style={{ padding: '16px' }}>
-          {data.sales.map((row, idx) => {
-            const color = data.colors[row.brand] || '#e2e8f0';
-            const isPairEnd = (idx % 2 === 1) && (idx < data.sales.length - 1);
-            const dividerClass = isPairEnd ? 'pair-divider-mobile' : '';
-
-            return (
-              <div key={row.id} className={`shift-card ${dividerClass}`}>
-                <div className="shift-card-header">
-                  <div className="shift-card-title-wrap">
-                    <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: color }}></span>
-                    <span className="shift-card-title">{row.brand}</span>
-                    <span className="shift-card-name">{row.name}</span>
-                  </div>
-                </div>
-                <div className="day-grid">
-                  {HARI_ORDER.map(day => {
-                    const val = row[day as keyof typeof row] as string || '';
-                    return (
-                      <div key={day} className="day-cell">
-                        <span className="day-label">{HARI_LABELS[day].substring(0,3)}</span>
-                        <span 
-                          className={`badge-shift ${shiftClass(val)} ${!isAdmin ? 'admin-locked' : ''}`}
-                          onClick={() => updateShift(idx, day, val)}
-                        >
-                          <span className="badge-label">{val || '-'}</span>
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
+          {isMounted ? (
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={sales.map((s: any) => s.id)} strategy={verticalListSortingStrategy}>
+                {sales.map((row: any, idx: number) => (
+                  <SortableCard key={row.id} row={row} idx={idx} isAdmin={isAdmin} updateShift={updateShift} data={data} />
+                ))}
+              </SortableContext>
+            </DndContext>
+          ) : (
+            <div style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>Memuat kartu...</div>
+          )}
         </div>
       </div>
     </section>
