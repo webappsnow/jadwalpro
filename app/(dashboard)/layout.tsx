@@ -9,8 +9,7 @@ import { useData } from '@/hooks/useData';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { data } = useData();
-  // Kirim kedua array
-  const { user, isAdmin, loading, logout } = useAdmin(data.adminEmails, data.promotorEmails);
+  const { user, isAdmin, loading, logout } = useAdmin(data.adminEmails);
   const router = useRouter();
 
   useEffect(() => {

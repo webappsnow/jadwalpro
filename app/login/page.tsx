@@ -6,8 +6,7 @@ import { useData } from '@/hooks/useData';
 
 export default function LoginPage() {
   const { data } = useData();
-  // Kirim kedua array dan ambil status unauthorized
-  const { user, login, loading, unauthorized } = useAdmin(data.adminEmails, data.promotorEmails);
+  const { user, login, loading } = useAdmin(data.adminEmails);
   const router = useRouter();
 
   useEffect(() => {
@@ -29,16 +28,9 @@ export default function LoginPage() {
       <div className="card-glass" style={{ padding: '48px', borderRadius: '24px', maxWidth: '400px', width: '100%', textAlign: 'center' }}>
         <img src="/logo-ufo.png" alt="Logo" style={{ width: '150px', height: 'auto', margin: '0 auto 24px auto' }} />
         <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '8px' }}>Selamat Datang</h1>
-        
-        {unauthorized ? (
-          <p style={{ color: '#ef4444', marginBottom: '24px', fontSize: '0.95rem', fontWeight: 600 }}>
-            Maaf, email Anda belum terdaftar. Silakan hubungi Admin.
-          </p>
-        ) : (
-          <p style={{ color: '#64748b', marginBottom: '32px', fontSize: '0.95rem' }}>
-            Silakan login dengan akun Google Anda.
-          </p>
-        )}
+        <p style={{ color: '#64748b', marginBottom: '32px', fontSize: '0.95rem' }}>
+          Silakan login dengan akun Google Anda.
+        </p>
         
         <button onClick={login} className="btn-modern btn-primary" style={{ width: '100%', padding: '14px', fontSize: '1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
