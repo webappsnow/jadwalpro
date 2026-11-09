@@ -1,57 +1,29 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase';
-import { loginWithGoogle } from '@/lib/auth';
+import { useAdmin } from '@/hooks/useAdmin';
+import { useData } from '@/hooks/useData';
 
 export default function LoginPage() {
+  const { data, loading: dataLoading } = useData();
+  const { user, login, loading: authLoading, unauthorized } = useAdmin(data.adminEmails, data.promotorEmails);
   const router = useRouter();
-  const [isChecking, setIsChecking] = useState(false);
+
+  const isLoading = dataLoading || authLoading;
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (user) => {
-      if (user && user.email) {
-        setIsChecking(true);
-        try {
-          const docRef = doc(db, 'config', 'ufo_data');
-          const docSnap = await getDoc(docRef);
-
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            const adminEmails = data.adminEmails || [];
-            const promotorEmails = data.promotorEmails || [];
-            
-            const email = user.email.toLowerCase();
-            const isAllowed = adminEmails.map((e: string) => e.toLowerCase()).includes(email) || 
-                              promotorEmails.map((e: string) => e.toLowerCase()).includes(email);
-
-            if (isAllowed) {
-              router.push('/shift');
-            } else {
-              await auth.signOut();
-              alert('Email Anda belum terdaftar. Silakan hubungi Admin.');
-            }
-          }
-        } catch (error) {
-          console.error("Error cek login:", error);
-        } finally {
-          setIsChecking(false);
-        }
-      }
-    });
-
-    return () => unsub();
-  }, [router]);
-
-  const handleLogin = async () => {
-    try {
-      await loginWithGoogle();
-    } catch (error) {
-      console.error(error);
+    if (!isLoading && user) {
+      router.push('/shift'); 
     }
-  };
+  }, [user, isLoading, router]);
+
+  if (isLoading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f8fafc', color: '#64748b' }}>
+        Memuat...
+      </div>
+    );
+  }
 
   return (
     <div style={{ 
@@ -64,7 +36,7 @@ export default function LoginPage() {
       padding: '20px' 
     }}>
       <div className="card-glass" style={{ 
-        padding: '40px 32px', 
+        padding: '40px 32px',
         borderRadius: '24px', 
         maxWidth: '400px', 
         width: '100%', 
@@ -72,6 +44,7 @@ export default function LoginPage() {
       }}>
         <img src="/logo-ufo.png" alt="Logo" style={{ width: '140px', height: 'auto', margin: '0 auto 16px auto' }} />
         
+        {/* NAMA APLIKASI (Tambahan) */}
         <p style={{ fontSize: '0.8rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '8px' }}>
           UFO Kebonsari
         </p>
@@ -80,15 +53,20 @@ export default function LoginPage() {
           Selamat Datang
         </h1>
         
-        <p style={{ color: '#64748b', marginBottom: '32px', fontSize: '0.9rem', lineHeight: 1.5 }}>
-          {isChecking ? 'Memeriksa akun...' : 'Silakan login dengan akun Google Anda untuk mengakses jadwal.'}
-        </p>
+        {unauthorized ? (
+          <p style={{ color: '#ef4444', marginBottom: '24px', fontSize: '0.9rem', fontWeight: 600, lineHeight: 1.5 }}>
+            Maaf, email Anda belum terdaftar. Silakan hubungi Admin.
+          </p>
+        ) : (
+          <p style={{ color: '#64748b', marginBottom: '32px', fontSize: '0.9rem', lineHeight: 1.5 }}>
+            Silakan login dengan akun Google Anda untuk mengakses jadwal.
+          </p>
+        )}
         
         <button 
-          onClick={handleLogin} 
-          disabled={isChecking}
+          onClick={login} 
           className="btn-modern btn-primary" 
-          style={{ width: '100%', padding: '14px', fontSize: '1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', opacity: isChecking ? 0.7 : 1 }}
+          style={{ width: '100%', padding: '14px', fontSize: '1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
