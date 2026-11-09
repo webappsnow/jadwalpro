@@ -9,7 +9,7 @@ import { auth } from './firebase'; // Pastikan auth diekspor dari firebase.ts
 
 // Daftar email Admin (Ganti dengan email Anda dan rekan admin)
 const ADMIN_EMAILS = [
-  'emailadmin1@gmail.com', 
+  'ufokebonsarimalang@gmail.com', 
   'emailadmin2@gmail.com'
 ];
 
