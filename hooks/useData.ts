@@ -17,8 +17,14 @@ export function useData() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // LANGSUNG ambil dari Firebase (server)
+    // Timeout pengaman: Jika 5 detik tidak ada respons, paksa selesai loading
+    const timeout = setTimeout(() => {
+      setLoading(false);
+    }, 5000);
+
     const unsub = onSnapshot(doc(db, 'config', 'ufo_data'), (snap) => {
+      clearTimeout(timeout); // Hentikan timeout jika data berhasil dimuat
+      
       if (snap.exists()) {
         const d = snap.data();
         setData({
@@ -34,11 +40,15 @@ export function useData() {
       }
       setLoading(false);
     }, (error) => {
+      clearTimeout(timeout);
       console.warn("Gagal baca data:", error);
       setLoading(false);
     });
 
-    return () => unsub();
+    return () => {
+      clearTimeout(timeout);
+      unsub();
+    };
   }, []);
 
   const saveData = useCallback(async (newData: Partial<AppData>) => {
