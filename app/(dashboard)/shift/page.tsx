@@ -172,7 +172,6 @@ export default function ShiftPage() {
           )}
         </div>
 
-        {/* Mobile View (Kartu Lama) */}
         <div className="mobile-only" style={{ padding: '16px' }}>
           {data.sales.map((row, idx) => {
             const color = data.colors[row.brand] || '#e2e8f0';
