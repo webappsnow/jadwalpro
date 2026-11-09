@@ -8,18 +8,15 @@ import { ConfirmModal } from '@/components/ConfirmModal';
 
 // Fungsi untuk membuat warna cerah & gradien
 function getBrightStyle(hex: string) {
-  // Jika warna kosong, kembalikan default
   if (!hex || hex.indexOf('#') !== 0) return { background: '#3b82f6', color: '#ffffff' };
-  
-  // Buat gradien dari warna asli ke warna yang lebih terang
   return {
     background: `linear-gradient(145deg, ${hex}, ${hex}dd)`,
-    color: '#ffffff', // Teks putih agar kontras
+    color: '#ffffff',
     borderColor: hex
   };
 }
 
-// Fungsi warna kontras (untuk teks jika diperlukan)
+// Fungsi warna kontras
 function getContrastYIQ(hexcolor: string){
     if(!hexcolor || hexcolor.indexOf('#') !== 0) return '#ffffff';
     hexcolor = hexcolor.replace("#", "");
@@ -239,7 +236,7 @@ export default function HarianPage() {
                       const brands = tugasMap[tugas] || [];
                       const isGeneralCleaning = tugas.includes('GENERAL CLEANING');
                       return (
-                        <tr key={`${area}-${tugas}`} className={i === 0 ? 'area-start' : ''} style={{ borderTop: i === 0 ? '2px solid #e2e8f0' : 'none' }}>
+                        <tr key={`${area}-${tugas}`} className={i === 0 ? 'area-start' : ''} style={{ borderTop: i === 0 ? '3px solid #1d4ed8' : 'none' }}>
                           {i === 0 && (
                             <td className="area-cell" rowSpan={tugasKeys.length} style={{ textAlign: 'center', verticalAlign: 'middle', fontWeight: 800, color: '#0f172a', background: '#f8fafc', borderRight: '1px solid #e2e8f0' }}>
                               {area}
