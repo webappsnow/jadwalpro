@@ -101,6 +101,7 @@ export default function ShiftPage() {
 
   const updateShift = async (idx: number, day: string, current: string) => {
     if (!isAdmin) { show('Silakan login admin dulu', true); return; }
+    // PERBAIKAN: Memastikan current adalah ShiftCode yang valid
     const curIdx = SHIFT_ORDER.indexOf((current || '') as ShiftCode);
     const next = SHIFT_ORDER[(curIdx + 1) % SHIFT_ORDER.length];
     const newSales = data.sales.map((s, i) =>

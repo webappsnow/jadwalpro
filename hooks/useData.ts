@@ -1,14 +1,16 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { db } from '@/lib/firebase';
-import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import type { AppData } from '@/lib/types';
+import { DEFAULT_HARIAN, DEFAULT_SALES } from '@/lib/constants';
 
 export function useData() {
+  // PERBAIKAN: Gunakan DEFAULT_HARIAN sebagai inisialisasi awal agar tipenya sesuai
   const [data, setData] = useState<AppData>({
-    sales: [],
+    sales: DEFAULT_SALES.map((s, i) => ({ ...s, id: `tmp-${i}` })),
     colors: {},
-    harian: {}, 
+    harian: DEFAULT_HARIAN, 
   });
   const [syncing, setSyncing] = useState(false);
 
@@ -16,19 +18,22 @@ export function useData() {
     const unsub = onSnapshot(doc(db, 'config', 'ufo_data'), (snap) => {
       if (snap.exists()) {
         const d = snap.data();
+        
+        // Pastikan data yang di-set dari Firebase juga sesuai tipenya
         setData({
           sales: (d.sales || []).map((s: any, i: number) => ({
             ...s,
             id: s.id || `sales-${i}-${Date.now()}`,
           })),
           colors: d.colors || {},
-          harian: d.harian || {},
+          // Jika d.harian kosong, gunakan DEFAULT_HARIAN agar tipenya aman
+          harian: d.harian || DEFAULT_HARIAN,
         });
       } else {
         setData({
           sales: [],
           colors: {},
-          harian: {},
+          harian: DEFAULT_HARIAN,
         });
       }
     });
@@ -39,14 +44,17 @@ export function useData() {
   const saveData = useCallback(async (newData: Partial<AppData>) => {
     setSyncing(true);
     
-    // 1. Update Layar Instan
+    // Update Layar Instan
     setData(prev => ({ ...prev, ...newData }));
 
     try {
-      // 2. Paksa timpa data lama dengan data baru di Firebase
       const payload = { ...data, ...newData };
-      await setDoc(doc(db, 'config', 'ufo_data'), payload, { merge: true });
-      
+      const res = await fetch('/api/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error('Gagal simpan');
       setSyncing(false);
       return true;
     } catch (error) {
