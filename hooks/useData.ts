@@ -11,6 +11,7 @@ export function useData() {
     colors: {},
     harian: DEFAULT_HARIAN,
     adminEmails: [],
+    promotorEmails: [], // WAJIB: Tambahkan ini
   });
   const [syncing, setSyncing] = useState(false);
 
@@ -26,6 +27,7 @@ export function useData() {
           colors: d.colors || {},
           harian: d.harian || DEFAULT_HARIAN,
           adminEmails: d.adminEmails || [],
+          promotorEmails: d.promotorEmails || [], // WAJIB
         });
       } else {
         setData({
@@ -33,6 +35,7 @@ export function useData() {
           colors: {},
           harian: DEFAULT_HARIAN,
           adminEmails: [],
+          promotorEmails: [], // WAJIB
         });
       }
     });

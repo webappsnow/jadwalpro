@@ -7,6 +7,7 @@ import { ConfirmModal } from '@/components/ConfirmModal';
 
 export default function AdminPage() {
   const { data, saveData } = useData();
+  // Kirim kedua array ke useAdmin
   const { isAdmin, loading } = useAdmin(data.adminEmails, data.promotorEmails);
   const { show } = useToast();
 
@@ -14,7 +15,6 @@ export default function AdminPage() {
   const [newName, setNewName] = useState('');
   const [newShiftDay, setNewShiftDay] = useState('P');
   
-  // State untuk Email Admin & Promotor
   const [newAdminEmail, setNewAdminEmail] = useState('');
   const [newPromotorEmail, setNewPromotorEmail] = useState('');
   
@@ -38,64 +38,52 @@ export default function AdminPage() {
   const closeConfirm = () => setConfirmState(prev => ({ ...prev, isOpen: false }));
 
   if (loading) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh', color: '#64748b' }}>
-        Memuat status admin...
-      </div>
-    );
+    return <div style={{ padding: '40px', textAlign: 'center' }}>Memuat...</div>;
   }
 
   if (!isAdmin) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', textAlign: 'center', color: '#64748b' }}>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '8px' }}>Akses Ditolak</h2>
-        <p style={{ fontSize: '0.95rem' }}>Halaman ini hanya dapat diakses oleh Admin.</p>
+      <div style={{ padding: '40px', textAlign: 'center' }}>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a' }}>Akses Ditolak</h2>
+        <p>Halaman ini hanya untuk Admin.</p>
       </div>
     );
   }
 
-  // Fungsi Tambah Admin
+  // --- FUNGSI KELOLA ADMIN ---
   const handleAddAdminEmail = async () => {
     const email = newAdminEmail.trim().toLowerCase();
-    if (!email || !email.includes('@')) { show('Masukkan email yang valid', true); return; }
-    if (data.adminEmails.includes(email)) { show('Email sudah terdaftar sebagai admin', true); return; }
-    if (data.promotorEmails.includes(email)) { show('Email sudah terdaftar sebagai promotor', true); return; }
+    if (!email || !email.includes('@')) return show('Email tidak valid', true);
+    if (data.adminEmails.includes(email)) return show('Email sudah ada', true);
+    if (data.promotorEmails.includes(email)) return show('Email ada di promotor', true);
     
-    const newEmails = [...data.adminEmails, email];
-    const ok = await saveData({ adminEmails: newEmails });
-    if (ok) { show('Email admin berhasil ditambahkan'); setNewAdminEmail(''); }
-    else show('Gagal menambahkan email admin', true);
+    const ok = await saveData({ adminEmails: [...data.adminEmails, email] });
+    if (ok) { show('Admin ditambahkan'); setNewAdminEmail(''); }
   };
 
-  // Fungsi Tambah Promotor
-  const handleAddPromotorEmail = async () => {
-    const email = newPromotorEmail.trim().toLowerCase();
-    if (!email || !email.includes('@')) { show('Masukkan email yang valid', true); return; }
-    if (data.promotorEmails.includes(email)) { show('Email sudah terdaftar sebagai promotor', true); return; }
-    if (data.adminEmails.includes(email)) { show('Email sudah terdaftar sebagai admin', true); return; }
-    
-    const newEmails = [...data.promotorEmails, email];
-    const ok = await saveData({ promotorEmails: newEmails });
-    if (ok) { show('Email promotor berhasil ditambahkan'); setNewPromotorEmail(''); }
-    else show('Gagal menambahkan email promotor', true);
-  };
-
-  // Fungsi Hapus Admin
   const handleRemoveAdminEmail = (email: string) => {
-    openConfirm('Hapus Email Admin', `Hapus akses admin untuk ${email}?`, async () => {
-      const newEmails = data.adminEmails.filter(e => e !== email);
-      const ok = await saveData({ adminEmails: newEmails });
-      if (ok) show(`${email} dihapus dari admin`);
+    openConfirm('Hapus Admin', `Hapus ${email}?`, async () => {
+      await saveData({ adminEmails: data.adminEmails.filter(e => e !== email) });
+      show('Admin dihapus');
       closeConfirm();
     }, true);
   };
 
-  // Fungsi Hapus Promotor
+  // --- FUNGSI KELOLA PROMOTOR ---
+  const handleAddPromotorEmail = async () => {
+    const email = newPromotorEmail.trim().toLowerCase();
+    if (!email || !email.includes('@')) return show('Email tidak valid', true);
+    if (data.promotorEmails.includes(email)) return show('Email sudah ada', true);
+    if (data.adminEmails.includes(email)) return show('Email ada di admin', true);
+    
+    const ok = await saveData({ promotorEmails: [...data.promotorEmails, email] });
+    if (ok) { show('Promotor ditambahkan'); setNewPromotorEmail(''); }
+  };
+
   const handleRemovePromotorEmail = (email: string) => {
-    openConfirm('Hapus Email Promotor', `Hapus akses promotor untuk ${email}?`, async () => {
-      const newEmails = data.promotorEmails.filter(e => e !== email);
-      const ok = await saveData({ promotorEmails: newEmails });
-      if (ok) show(`${email} dihapus dari promotor`);
+    openConfirm('Hapus Promotor', `Hapus ${email}?`, async () => {
+      await saveData({ promotorEmails: data.promotorEmails.filter(e => e !== email) });
+      show('Promotor dihapus');
       closeConfirm();
     }, true);
   };
@@ -123,12 +111,11 @@ export default function AdminPage() {
     const idx = parseInt(deleteIdx);
     if (isNaN(idx)) { show('Pilih sales terlebih dahulu', true); return; }
     
-    openConfirm('Hapus Sales', 'Apakah Anda yakin ingin menghapus sales ini dari daftar?', async () => {
+    openConfirm('Hapus Sales', 'Hapus sales ini?', async () => {
       const newSales = [...data.sales];
       newSales.splice(idx, 1);
       const ok = await saveData({ sales: newSales });
       if (ok) { show('Sales dihapus'); setDeleteIdx(''); }
-      else show('Gagal menghapus', true);
       closeConfirm();
     }, true);
   };
@@ -139,16 +126,15 @@ export default function AdminPage() {
     const newColors = { ...data.colors, [brand]: colorValue };
     const ok = await saveData({ colors: newColors });
     if (ok) { show('Warna brand diset'); setColorBrand(''); }
-    else show('Gagal menyimpan warna', true);
   };
 
   const handleRemoveColor = (brand: string) => {
-    openConfirm('Hapus Warna', `Hapus warna untuk brand ${brand}?`, async () => {
+    openConfirm('Hapus Warna', `Hapus warna untuk ${brand}?`, async () => {
       const newColors = { ...data.colors };
       const keyToDelete = Object.keys(newColors).find(k => k.trim().toUpperCase() === brand.trim().toUpperCase());
       if (keyToDelete) delete newColors[keyToDelete];
-      const ok = await saveData({ colors: newColors });
-      if (ok) show(`${brand} dihapus`);
+      await saveData({ colors: newColors });
+      show('Warna dihapus');
       closeConfirm();
     }, true);
   };
@@ -162,47 +148,39 @@ export default function AdminPage() {
 
       <div className="card-glass" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
         
-        {/* Form Kelola Admin */}
+        {/* FORM ADMIN */}
         <div>
           <h3 style={{ fontWeight: 700, color: '#334155', marginBottom: '12px' }}>Kelola Akses Admin (Email Google)</h3>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
-            <input type="email" placeholder="Masukkan email Google untuk dijadikan Admin..." className="admin-input" style={{ flex: 1, minWidth: '200px' }} value={newAdminEmail} onChange={e => setNewAdminEmail(e.target.value)} />
+            <input type="email" placeholder="Masukkan email admin..." className="admin-input" style={{ flex: 1, minWidth: '200px' }} value={newAdminEmail} onChange={e => setNewAdminEmail(e.target.value)} />
             <button className="btn-modern btn-primary" onClick={handleAddAdminEmail}>Tambah Admin</button>
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-            {data.adminEmails.length === 0 ? (
-              <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Belum ada email admin terdaftar.</span>
-            ) : (
-              data.adminEmails.map((email) => (
-                <span key={email} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'white', padding: '6px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.8rem', fontWeight: 600 }}>
-                  {email}
-                  <button onClick={() => handleRemoveAdminEmail(email)} style={{ border: 'none', background: 'transparent', color: '#cbd5e1', fontWeight: 'bold', cursor: 'pointer' }}>✕</button>
-                </span>
-              ))
-            )}
+            {data.adminEmails.map((email) => (
+              <span key={email} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'white', padding: '6px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.8rem', fontWeight: 600 }}>
+                {email}
+                <button onClick={() => handleRemoveAdminEmail(email)} style={{ border: 'none', background: 'transparent', color: '#cbd5e1', fontWeight: 'bold', cursor: 'pointer' }}>✕</button>
+              </span>
+            ))}
           </div>
         </div>
 
         <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0' }} />
 
-        {/* Form Kelola Promotor (INI YANG DICARI) */}
+        {/* FORM PROMOTOR */}
         <div>
           <h3 style={{ fontWeight: 700, color: '#334155', marginBottom: '12px' }}>Kelola Akses Promotor (Email Google)</h3>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
-            <input type="email" placeholder="Masukkan email Google untuk dijadikan Promotor..." className="admin-input" style={{ flex: 1, minWidth: '200px' }} value={newPromotorEmail} onChange={e => setNewPromotorEmail(e.target.value)} />
+            <input type="email" placeholder="Masukkan email promotor..." className="admin-input" style={{ flex: 1, minWidth: '200px' }} value={newPromotorEmail} onChange={e => setNewPromotorEmail(e.target.value)} />
             <button className="btn-modern btn-primary" onClick={handleAddPromotorEmail}>Tambah Promotor</button>
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-            {data.promotorEmails.length === 0 ? (
-              <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Belum ada email promotor terdaftar.</span>
-            ) : (
-              data.promotorEmails.map((email) => (
-                <span key={email} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'white', padding: '6px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.8rem', fontWeight: 600 }}>
-                  {email}
-                  <button onClick={() => handleRemovePromotorEmail(email)} style={{ border: 'none', background: 'transparent', color: '#cbd5e1', fontWeight: 'bold', cursor: 'pointer' }}>✕</button>
-                </span>
-              ))
-            )}
+            {data.promotorEmails.map((email) => (
+              <span key={email} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'white', padding: '6px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.8rem', fontWeight: 600 }}>
+                {email}
+                <button onClick={() => handleRemovePromotorEmail(email)} style={{ border: 'none', background: 'transparent', color: '#cbd5e1', fontWeight: 'bold', cursor: 'pointer' }}>✕</button>
+              </span>
+            ))}
           </div>
         </div>
 
@@ -260,16 +238,16 @@ export default function AdminPage() {
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-end' }}>
             <button className="btn-modern btn-outline" style={{ width: '100%' }} onClick={() => {
-              openConfirm('Kosongkan Shift', 'Kosongkan semua data shift & sales?', async () => {
-                const ok = await saveData({ sales: [] });
-                if (ok) show('Data shift dikosongkan');
+              openConfirm('Kosongkan Shift', 'Kosongkan semua data shift?', async () => {
+                await saveData({ sales: [] });
+                show('Shift dikosongkan');
                 closeConfirm();
               }, true);
             }}>Kosongkan Shift</button>
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-end' }}>
             <button className="btn-modern btn-outline" style={{ width: '100%' }} onClick={() => {
-              openConfirm('Kosongkan Piket Harian', 'Kosongkan semua jadwal piket harian?', async () => {
+              openConfirm('Kosongkan Piket Harian', 'Kosongkan piket harian?', async () => {
                 const emptyHarian: any = {};
                 ['senin','selasa','rabu','kamis','jumat','sabtu','minggu'].forEach(day => {
                   emptyHarian[day] = {
@@ -278,8 +256,8 @@ export default function AdminPage() {
                     'FREEZER': { 'MENYAPU': [], 'MENGEPEL': [], 'GENERAL CLEANING (SETELAH PIKET)': [] }
                   };
                 });
-                const ok = await saveData({ harian: emptyHarian });
-                if (ok) show('Piket harian dikosongkan');
+                await saveData({ harian: emptyHarian });
+                show('Piket harian dikosongkan');
                 closeConfirm();
               }, true);
             }}>Kosongkan Piket Harian</button>
@@ -292,28 +270,24 @@ export default function AdminPage() {
         <div>
           <h3 style={{ fontWeight: 700, color: '#334155', marginBottom: '12px' }}>Daftar Sales Terdaftar</h3>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-            {data.sales.length === 0 ? (
-              <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Belum ada sales terdaftar.</span>
-            ) : (
-              data.sales.map((item, idx) => {
-                const color = data.colors[item.brand.trim().toUpperCase()] || '#e2e8f0';
-                return (
-                  <span key={item.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'white', padding: '8px 14px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.85rem', fontWeight: 500 }}>
-                    <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: color, border: '1px solid white' }}></span>
-                    {item.brand} - {item.name}
-                    <button onClick={() => {
-                      openConfirm('Hapus Sales', `Hapus ${item.brand} - ${item.name}?`, async () => {
-                        const newSales = [...data.sales];
-                        newSales.splice(idx, 1);
-                        await saveData({ sales: newSales });
-                        show('Sales dihapus');
-                        closeConfirm();
-                      }, true);
-                    }} style={{ border: 'none', background: 'transparent', color: '#cbd5e1', fontWeight: 'bold', cursor: 'pointer', marginLeft: '4px' }}>✕</button>
-                  </span>
-                );
-              })
-            )}
+            {data.sales.map((item, idx) => {
+              const color = data.colors[item.brand.trim().toUpperCase()] || '#e2e8f0';
+              return (
+                <span key={item.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'white', padding: '8px 14px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.85rem', fontWeight: 500 }}>
+                  <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: color }}></span>
+                  {item.brand} - {item.name}
+                  <button onClick={() => {
+                    openConfirm('Hapus Sales', `Hapus ${item.brand}?`, async () => {
+                      const newSales = [...data.sales];
+                      newSales.splice(idx, 1);
+                      await saveData({ sales: newSales });
+                      show('Sales dihapus');
+                      closeConfirm();
+                    }, true);
+                  }} style={{ border: 'none', background: 'transparent', color: '#cbd5e1', fontWeight: 'bold', cursor: 'pointer' }}>✕</button>
+                </span>
+              );
+            })}
           </div>
         </div>
       </div>
