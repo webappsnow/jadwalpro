@@ -11,7 +11,7 @@ export function useAdmin(adminEmails: string[] = [], promotorEmails: string[] = 
   const [unauthorized, setUnauthorized] = useState(false);
 
   useEffect(() => {
-    // JIKA data admin belum termuat, tunggu (jangan lakukan pengecekan apa pun)
+    // TUNGGU sampai data admin/promotor selesai dimuat dari Firebase
     if (adminEmails.length === 0 && promotorEmails.length === 0) {
       return;
     }

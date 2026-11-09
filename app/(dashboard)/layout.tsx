@@ -8,11 +8,10 @@ import { useAdmin } from '@/hooks/useAdmin';
 import { useData } from '@/hooks/useData';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { data, loading: dataLoading } = useData(); // Ambil status loading data
+  const { data, loading: dataLoading } = useData();
   const { user, isAdmin, loading: authLoading, logout } = useAdmin(data.adminEmails, data.promotorEmails);
   const router = useRouter();
 
-  // Tunggu kedua loading selesai
   const isLoading = dataLoading || authLoading;
 
   useEffect(() => {

@@ -21,10 +21,7 @@ export function useData() {
     let unsubSnapshot: (() => void) | null = null;
 
     const unsubAuth = onAuthStateChanged(auth, (user) => {
-      if (unsubSnapshot) {
-        unsubSnapshot();
-        unsubSnapshot = null;
-      }
+      if (unsubSnapshot) { unsubSnapshot(); unsubSnapshot = null; }
 
       if (user) {
         unsubSnapshot = onSnapshot(doc(db, 'config', 'ufo_data'), (snap) => {
