@@ -5,17 +5,19 @@ import { useAdmin } from '@/hooks/useAdmin';
 import { useData } from '@/hooks/useData';
 
 export default function LoginPage() {
-  const { data } = useData();
-  const { user, login, loading } = useAdmin(data.adminEmails, data.promotorEmails);
+  const { data, loading: dataLoading } = useData();
+  const { user, login, loading: authLoading, unauthorized } = useAdmin(data.adminEmails, data.promotorEmails);
   const router = useRouter();
 
+  const isLoading = dataLoading || authLoading;
+
   useEffect(() => {
-    if (!loading && user) {
+    if (!isLoading && user) {
       router.push('/shift'); 
     }
-  }, [user, loading, router]);
+  }, [user, isLoading, router]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f8fafc', color: '#64748b' }}>
         Memuat...
@@ -24,14 +26,79 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'linear-gradient(135deg, #f0f4f9 0%, #f8fafc 100%)', padding: '20px' }}>
-      <div className="card-glass" style={{ padding: '48px', borderRadius: '24px', maxWidth: '400px', width: '100%', textAlign: 'center' }}>
-        <img src="/logo-ufo.png" alt="Logo" style={{ width: '150px', height: 'auto', margin: '0 auto 24px auto' }} />
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '8px' }}>Selamat Datang</h1>
-        <p style={{ color: '#64748b', marginBottom: '32px', fontSize: '0.95rem' }}>
-          Silakan login dengan akun Google Anda.
+    <div style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      minHeight: '100vh', 
+      background: 'linear-gradient(135deg, #f0f4f9 0%, #f8fafc 100%)', 
+      padding: '20px' 
+    }}>
+      <div className="card-glass" style={{ 
+        padding: '40px 32px', // Padding lebih besar agar teks tidak terpotong
+        borderRadius: '24px', 
+        maxWidth: '400px', 
+        width: '100%', 
+        textAlign: 'center' 
+      }}>
+        <img src="/logo-ufo.png" alt="Logo" style={{ width: '140px', height: 'auto', margin: '0 auto 16px auto' }} />
+        
+        {/* NAMA APLIKASI */}
+        <p style={{ 
+          fontSize: '0.8rem', 
+          fontWeight: 800, 
+          color: '#64748b', 
+          textTransform: 'uppercase', 
+          letterSpacing: '2px', 
+          marginBottom: '8px' 
+        }}>
+          UFO Kebonsari
         </p>
-        <button onClick={login} className="btn-modern btn-primary" style={{ width: '100%', padding: '14px', fontSize: '1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}>
+
+        <h1 style={{ 
+          fontSize: '1.5rem', 
+          fontWeight: 800, 
+          color: '#0f172a', 
+          marginBottom: '12px' 
+        }}>
+          Selamat Datang
+        </h1>
+        
+        {unauthorized ? (
+          <p style={{ 
+            color: '#ef4444', 
+            marginBottom: '24px', 
+            fontSize: '0.9rem', 
+            fontWeight: 600,
+            lineHeight: 1.5 
+          }}>
+            Maaf, email Anda belum terdaftar. Silakan hubungi Admin.
+          </p>
+        ) : (
+          <p style={{ 
+            color: '#64748b', 
+            marginBottom: '32px', 
+            fontSize: '0.9rem',
+            lineHeight: 1.5 
+          }}>
+            Silakan login dengan akun Google Anda untuk mengakses jadwal.
+          </p>
+        )}
+        
+        <button 
+          onClick={login} 
+          className="btn-modern btn-primary" 
+          style={{ 
+            width: '100%', 
+            padding: '14px', 
+            fontSize: '1rem', 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            gap: '10px' 
+          }}
+        >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
