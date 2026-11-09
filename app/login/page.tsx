@@ -1,30 +1,61 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAdmin } from '@/hooks/useAdmin';
-import { useData } from '@/hooks/useData';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase';
+import { loginWithGoogle } from '@/lib/auth';
 
 export default function LoginPage() {
-  const { data, loading: dataLoading } = useData();
-  const { user, login, loading: authLoading, unauthorized } = useAdmin(data.adminEmails, data.promotorEmails);
   const router = useRouter();
-  const [forceStopLoading, setForceStopLoading] = useState(false);
-
-  // Timeout pengaman: Jika 3 detik tidak selesai, paksa tampilkan halaman
-  useEffect(() => {
-    const timer = setTimeout(() => setForceStopLoading(true), 3000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const isLoading = (dataLoading || authLoading) && !forceStopLoading;
+  const [loading, setLoading] = useState(true);
+  const [unauthorized, setUnauthorized] = useState(false);
 
   useEffect(() => {
-    if (!isLoading && user) {
-      router.push('/shift'); 
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (user && user.email) {
+        // Cek apakah email terdaftar di database
+        const docRef = doc(db, 'config', 'ufo_data');
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          const adminEmails = data.adminEmails || [];
+          const promotorEmails = data.promotorEmails || [];
+          
+          const email = user.email.toLowerCase();
+          const isAllowed = adminEmails.map((e: string) => e.toLowerCase()).includes(email) || 
+                            promotorEmails.map((e: string) => e.toLowerCase()).includes(email);
+
+          if (isAllowed) {
+            router.push('/shift');
+            return;
+          } else {
+            await signOut(auth);
+            setUnauthorized(true);
+          }
+        } else {
+          // Jika database kosong, tolak
+          await signOut(auth);
+          setUnauthorized(true);
+        }
+      }
+      setLoading(false);
+    });
+
+    return () => unsub();
+  }, [router]);
+
+  const handleLogin = async () => {
+    setUnauthorized(false);
+    try {
+      await loginWithGoogle();
+    } catch (error) {
+      console.error(error);
     }
-  }, [user, isLoading, router]);
+  };
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f8fafc', color: '#64748b' }}>
         Memuat...
@@ -33,78 +64,32 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      alignItems: 'center', 
-      justifyContent: 'center', 
-      minHeight: '100vh', 
-      background: 'linear-gradient(135deg, #f0f4f9 0%, #f8fafc 100%)', 
-      padding: '20px' 
-    }}>
-      <div className="card-glass" style={{ 
-        padding: '40px 32px',
-        borderRadius: '24px', 
-        maxWidth: '400px', 
-        width: '100%', 
-        textAlign: 'center' 
-      }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'linear-gradient(135deg, #f0f4f9 0%, #f8fafc 100%)', padding: '20px' }}>
+      <div className="card-glass" style={{ padding: '40px 32px', borderRadius: '24px', maxWidth: '400px', width: '100%', textAlign: 'center' }}>
         <img src="/logo-ufo.png" alt="Logo" style={{ width: '140px', height: 'auto', margin: '0 auto 16px auto' }} />
         
-        {/* NAMA APLIKASI */}
-        <p style={{ 
-          fontSize: '0.8rem', 
-          fontWeight: 800, 
-          color: '#64748b', 
-          textTransform: 'uppercase', 
-          letterSpacing: '2px', 
-          marginBottom: '8px' 
-        }}>
+        <p style={{ fontSize: '0.8rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '8px' }}>
           UFO Kebonsari
         </p>
 
-        <h1 style={{ 
-          fontSize: '1.5rem', 
-          fontWeight: 800, 
-          color: '#0f172a', 
-          marginBottom: '12px' 
-        }}>
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '12px' }}>
           Selamat Datang
         </h1>
         
         {unauthorized ? (
-          <p style={{ 
-            color: '#ef4444', 
-            marginBottom: '24px', 
-            fontSize: '0.9rem', 
-            fontWeight: 600,
-            lineHeight: 1.5 
-          }}>
+          <p style={{ color: '#ef4444', marginBottom: '24px', fontSize: '0.9rem', fontWeight: 600, lineHeight: 1.5 }}>
             Maaf, email Anda belum terdaftar. Silakan hubungi Admin.
           </p>
         ) : (
-          <p style={{ 
-            color: '#64748b', 
-            marginBottom: '32px', 
-            fontSize: '0.9rem',
-            lineHeight: 1.5 
-          }}>
+          <p style={{ color: '#64748b', marginBottom: '32px', fontSize: '0.9rem', lineHeight: 1.5 }}>
             Silakan login dengan akun Google Anda untuk mengakses jadwal.
           </p>
         )}
         
         <button 
-          onClick={login} 
+          onClick={handleLogin} 
           className="btn-modern btn-primary" 
-          style={{ 
-            width: '100%', 
-            padding: '14px', 
-            fontSize: '1rem', 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            gap: '10px' 
-          }}
+          style={{ width: '100%', padding: '14px', fontSize: '1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
