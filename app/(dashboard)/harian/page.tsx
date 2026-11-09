@@ -30,7 +30,7 @@ function getContrastYIQ(hexcolor: string){
 
 export default function HarianPage() {
   const { data, saveData } = useData();
-  const { isAdmin } = useAdmin(data.adminEmails, data.promotorEmails);
+  const { isAdmin } = useAdmin(data.adminEmails);
   const { show } = useToast();
   
   const [activeDay, setActiveDay] = useState<string>('senin');

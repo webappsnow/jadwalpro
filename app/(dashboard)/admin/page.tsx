@@ -7,7 +7,7 @@ import { ConfirmModal } from '@/components/ConfirmModal';
 
 export default function AdminPage() {
   const { data, saveData } = useData();
-  const { isAdmin, loading } = useAdmin(data.adminEmails, data.promotorEmails);
+ const { isAdmin, loading } = useAdmin(data.adminEmails);
   const { show } = useToast();
 
   const [newBrand, setNewBrand] = useState('');

@@ -9,6 +9,7 @@ import { useData } from '@/hooks/useData';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { data } = useData();
+  // HANYA 1 PARAMETER: adminEmails
   const { user, isAdmin, loading, logout } = useAdmin(data.adminEmails);
   const router = useRouter();
 
@@ -32,9 +33,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <ToastProvider>
       <div className="layout-wrapper">
         <Sidebar isAdmin={isAdmin} user={user} onLogout={logout} />
+        
         <main className={`main-content ${!isAdmin ? 'admin-locked' : ''}`}>
           {children}
         </main>
+        
         <BottomNav isAdmin={isAdmin} onAdminClick={() => {}} />
       </div>
     </ToastProvider>
