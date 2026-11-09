@@ -6,6 +6,7 @@ import { useData } from '@/hooks/useData';
 
 export default function LoginPage() {
   const { data, loading: dataLoading } = useData();
+  // Menggunakan useAdmin yang memiliki properti unauthorized
   const { user, login, loading: authLoading, unauthorized } = useAdmin(data.adminEmails, data.promotorEmails);
   const router = useRouter();
 
