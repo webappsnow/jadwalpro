@@ -32,11 +32,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <ToastProvider>
       <div className="layout-wrapper">
         <Sidebar isAdmin={isAdmin} user={user} onLogout={logout} />
-        
         <main className={`main-content ${!isAdmin ? 'admin-locked' : ''}`}>
           {children}
         </main>
-        
         <BottomNav isAdmin={isAdmin} onAdminClick={() => {}} />
       </div>
     </ToastProvider>

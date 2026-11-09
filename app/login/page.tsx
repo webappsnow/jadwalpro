@@ -1,10 +1,29 @@
 'use client';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useData } from '@/hooks/useData';
 
 export default function LoginPage() {
-  const { data } = useData();
-  const { login } = useAdmin(data.adminEmails, data.promotorEmails);
+  const { data, loading: dataLoading } = useData();
+  const { user, login, loading: authLoading, unauthorized } = useAdmin(data.adminEmails, data.promotorEmails);
+  const router = useRouter();
+
+  const isLoading = dataLoading || authLoading;
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      router.push('/shift'); 
+    }
+  }, [user, isLoading, router]);
+
+  if (isLoading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f8fafc', color: '#64748b' }}>
+        Memuat...
+      </div>
+    );
+  }
 
   return (
     <div style={{ 
@@ -33,9 +52,15 @@ export default function LoginPage() {
           Selamat Datang
         </h1>
         
-        <p style={{ color: '#64748b', marginBottom: '32px', fontSize: '0.9rem', lineHeight: 1.5 }}>
-          Silakan login dengan akun Google Anda untuk mengakses jadwal.
-        </p>
+        {unauthorized ? (
+          <p style={{ color: '#ef4444', marginBottom: '24px', fontSize: '0.9rem', fontWeight: 600, lineHeight: 1.5 }}>
+            Maaf, email Anda belum terdaftar. Silakan hubungi Admin.
+          </p>
+        ) : (
+          <p style={{ color: '#64748b', marginBottom: '32px', fontSize: '0.9rem', lineHeight: 1.5 }}>
+            Silakan login dengan akun Google Anda untuk mengakses jadwal.
+          </p>
+        )}
         
         <button 
           onClick={login} 
