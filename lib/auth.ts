@@ -23,5 +23,9 @@ export const logout = async () => {
 
 export const checkIsAdmin = (user: User | null, adminEmails: string[]) => {
   if (!user || !user.email) return false;
-  return adminEmails.map(e => e.toLowerCase()).includes(user.email.toLowerCase());
+  // Bersihkan spasi dan jadikan huruf kecil semua sebelum dibandingkan
+  const cleanUserEmail = user.email.trim().toLowerCase();
+  const cleanAdminEmails = adminEmails.map(e => e.trim().toLowerCase());
+  
+  return cleanAdminEmails.includes(cleanUserEmail);
 };

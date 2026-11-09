@@ -13,9 +13,10 @@ export function useAdmin(adminEmails: string[] = [], promotorEmails: string[] = 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser && currentUser.email) {
-        const email = currentUser.email.toLowerCase();
+        // Bersihkan spasi dan jadikan huruf kecil
+        const email = currentUser.email.trim().toLowerCase();
         const isAdm = checkIsAdmin(currentUser, adminEmails);
-        const isProm = promotorEmails.map(e => e.toLowerCase()).includes(email);
+        const isProm = promotorEmails.map(e => e.trim().toLowerCase()).includes(email);
 
         // Jika bukan admin DAN bukan promotor, tendang!
         if (!isAdm && !isProm) {
