@@ -11,23 +11,19 @@ export default function LoginPage() {
   const [isChecking, setIsChecking] = useState(false);
 
   useEffect(() => {
-    // Cek jika user sudah login (misal dari sesi sebelumnya)
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (user && user.email) {
         setIsChecking(true);
         try {
           const docRef = doc(db, 'config', 'ufo_data');
           const docSnap = await getDoc(docRef);
-
           if (docSnap.exists()) {
             const data = docSnap.data();
             const adminEmails = data.adminEmails || [];
             const promotorEmails = data.promotorEmails || [];
-            
             const email = user.email.toLowerCase();
             const isAllowed = adminEmails.map((e: string) => e.toLowerCase()).includes(email) || 
                               promotorEmails.map((e: string) => e.toLowerCase()).includes(email);
-
             if (isAllowed) {
               router.push('/shift');
             } else {
@@ -42,7 +38,6 @@ export default function LoginPage() {
         }
       }
     });
-
     return () => unsub();
   }, [router]);
 
@@ -55,31 +50,19 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ 
-      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', 
-      minHeight: '100vh', background: 'linear-gradient(135deg, #f0f4f9 0%, #f8fafc 100%)', padding: '20px' 
-    }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'linear-gradient(135deg, #f0f4f9 0%, #f8fafc 100%)', padding: '20px' }}>
       <div className="card-glass" style={{ padding: '40px 32px', borderRadius: '24px', maxWidth: '400px', width: '100%', textAlign: 'center' }}>
         <img src="/logo-ufo.png" alt="Logo" style={{ width: '140px', height: 'auto', margin: '0 auto 16px auto' }} />
-        
         <p style={{ fontSize: '0.8rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '8px' }}>
           UFO Kebonsari
         </p>
-
         <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '12px' }}>
           Selamat Datang
         </h1>
-        
         <p style={{ color: '#64748b', marginBottom: '32px', fontSize: '0.9rem', lineHeight: 1.5 }}>
           {isChecking ? 'Memeriksa akun...' : 'Silakan login dengan akun Google Anda untuk mengakses jadwal.'}
         </p>
-        
-        <button 
-          onClick={handleLogin} 
-          disabled={isChecking}
-          className="btn-modern btn-primary" 
-          style={{ width: '100%', padding: '14px', fontSize: '1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', opacity: isChecking ? 0.7 : 1 }}
-        >
+        <button onClick={handleLogin} disabled={isChecking} className="btn-modern btn-primary" style={{ width: '100%', padding: '14px', fontSize: '1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', opacity: isChecking ? 0.7 : 1 }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
